@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BSEtunes.Infrastructure", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BSEtunes.Domain", "src\BSEtunes.Domain\BSEtunes.Domain.csproj", "{00400AEF-A2A6-4EBB-8CEF-8E9782F4AF6C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BSEtunes.UnitTests", "BSEtunes.UnitTests\BSEtunes.UnitTests.csproj", "{3D8BEE1A-26FE-1902-DA4C-0F198755C8CE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{00400AEF-A2A6-4EBB-8CEF-8E9782F4AF6C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{00400AEF-A2A6-4EBB-8CEF-8E9782F4AF6C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{00400AEF-A2A6-4EBB-8CEF-8E9782F4AF6C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3D8BEE1A-26FE-1902-DA4C-0F198755C8CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3D8BEE1A-26FE-1902-DA4C-0F198755C8CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3D8BEE1A-26FE-1902-DA4C-0F198755C8CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3D8BEE1A-26FE-1902-DA4C-0F198755C8CE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
