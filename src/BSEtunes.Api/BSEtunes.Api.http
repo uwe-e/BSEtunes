@@ -1,0 +1,6 @@
+@BSEtunes.Api_HostAddress = http://localhost:5176
+
+GET {{BSEtunes.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
