@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BSEtunes.Infrastructure.Models;
 
-public partial class album
+[Table("album")]
+public partial class Album
 {
     public int Artist_Id { get; set; }
 

@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using BSEtunes.Infrastructure.Models;
+﻿using BSEtunes.Infrastructure.Models;
 using Microsoft.EntityFrameworkCore;
-using Pomelo.EntityFrameworkCore.MySql.Scaffolding.Internal;
 
 namespace BSEtunes.Infrastructure.Data;
 
@@ -17,7 +14,7 @@ public partial class RecordsDbContext : DbContext
     {
     }
 
-    public virtual DbSet<album> albums { get; set; }
+    public virtual DbSet<Album> Albums { get; set; }
 
     public virtual DbSet<filtersetting> filtersettings { get; set; }
 
@@ -29,7 +26,7 @@ public partial class RecordsDbContext : DbContext
 
     public virtual DbSet<interpreten> interpretens { get; set; }
 
-    public virtual DbSet<lieder> lieders { get; set; }
+    public virtual DbSet<Track> Tracks { get; set; }
 
     public virtual DbSet<medium> media { get; set; }
 
@@ -42,8 +39,13 @@ public partial class RecordsDbContext : DbContext
     public virtual DbSet<titel> titels { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseMySql("server=localhost;database=Platten;user=root;password=\"rolling;_Stones\"", Microsoft.EntityFrameworkCore.ServerVersion.Parse("8.0.43-mysql"));
+    {
+        if (!optionsBuilder.IsConfigured)
+        {
+            // The connection string is now read from configuration (e.g., appsettings.json or user secrets).
+            optionsBuilder.UseMySql("Name=ConnectionStrings:RecordsDb", Microsoft.EntityFrameworkCore.ServerVersion.Parse("8.0.43-mysql"));
+        }
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -51,7 +53,7 @@ public partial class RecordsDbContext : DbContext
             .UseCollation("utf8mb4_0900_ai_ci")
             .HasCharSet("utf8mb4");
 
-        modelBuilder.Entity<album>(entity =>
+        modelBuilder.Entity<Album>(entity =>
         {
             entity
                 .HasNoKey()
@@ -178,24 +180,24 @@ public partial class RecordsDbContext : DbContext
                 .HasColumnType("timestamp");
         });
 
-        modelBuilder.Entity<lieder>(entity =>
+        modelBuilder.Entity<Track>(entity =>
         {
-            entity.HasKey(e => e.LiedID).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
             entity
                 .ToTable("lieder")
                 .UseCollation("utf8mb4_unicode_ci");
 
-            entity.HasIndex(e => e.Lied, "iLieder").HasAnnotation("MySql:FullTextIndex", true);
+            entity.HasIndex(e => e.Name, "iLieder").HasAnnotation("MySql:FullTextIndex", true);
 
-            entity.Property(e => e.Dauer).HasColumnType("datetime");
-            entity.Property(e => e.Lied).HasMaxLength(100);
-            entity.Property(e => e.Liedpfad).HasMaxLength(255);
+            entity.Property(e => e.Duration).HasColumnType("datetime");
+            entity.Property(e => e.Name).HasMaxLength(100);
+            entity.Property(e => e.FilePath).HasMaxLength(255);
             entity.Property(e => e.Timestamp)
                 .ValueGeneratedOnAddOrUpdate()
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("timestamp");
-            entity.Property(e => e.guid)
+            entity.Property(e => e.Guid)
                 .HasMaxLength(36)
                 .HasDefaultValueSql("''");
         });

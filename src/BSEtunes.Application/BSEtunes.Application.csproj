@@ -6,4 +6,13 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\BSEtunes.Domain\BSEtunes.Domain.csproj" />
+    <ProjectReference Include="..\BSEtunes.Infrastructure\BSEtunes.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="15.1.0" />
+  </ItemGroup>
+
 </Project>

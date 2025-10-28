@@ -16,7 +16,10 @@
   
   <ItemGroup>
     <Folder Include="Data\" />
-    <Folder Include="Models\" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\BSEtunes.Domain\BSEtunes.Domain.csproj" />
   </ItemGroup>
 
 </Project>
