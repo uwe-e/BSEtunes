@@ -3,7 +3,6 @@ using BSEtunes.Application.Services;
 using BSEtunes.Infrastructure.Data;
 using BSEtunes.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 using MySqlConnector;
 
@@ -17,6 +16,23 @@ var connectionStringBuilder = new MySqlConnectionStringBuilder
     UserID = builder.Configuration["mysql:userid"],
     Password = builder.Configuration["mysql:password"]
 };
+
+// Temporary design-time DbContext factory check that creates the DbContext and the models
+//#if DEBUG
+//try
+//{
+//    // Temporary check — safe to guard with DEBUG so it doesn't run in production
+//    var factory = new BSEtunes.Infrastructure.Data.DesignTimeRecordsDbContextFactory();
+//    using var db = factory.CreateDbContext(Array.Empty<string>());
+//    Console.WriteLine($"[DesignTimeFactory] CanConnect: {db.Database.CanConnect()}");
+//}
+//catch (Exception ex)
+//{
+//    Console.WriteLine($"[DesignTimeFactory] ERROR: {ex}");
+//    // Uncomment to prompt Visual Studio to attach when CLI invokes this:
+//    // System.Diagnostics.Debugger.Launch();
+//}
+//#endif
 
 builder.Services.AddScoped<IAlbumService, AlbumService>();
 builder.Services.AddScoped<IAlbumRepository, AlbumRepository>();

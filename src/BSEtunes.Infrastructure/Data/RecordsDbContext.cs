@@ -38,15 +38,6 @@ public partial class RecordsDbContext : DbContext
 
     public virtual DbSet<titel> titels { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-        if (!optionsBuilder.IsConfigured)
-        {
-            // The connection string is now read from configuration (e.g., appsettings.json or user secrets).
-            optionsBuilder.UseMySql("Name=ConnectionStrings:RecordsDb", Microsoft.EntityFrameworkCore.ServerVersion.Parse("8.0.43-mysql"));
-        }
-    }
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder
