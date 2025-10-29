@@ -20,7 +20,7 @@ namespace BSEtunes.Api.Controllers
         /// <summary>
         /// Constructor for AlbumController
         /// </summary>
-        /// <param name="service">The service that conains the data</param>
+        /// <param name="service">The service that contains the data</param>
         /// <param name="mapper">The mapper that maps to the approbiate DTO</param>
         public AlbumController(IAlbumService service, IMapper mapper)
         {
