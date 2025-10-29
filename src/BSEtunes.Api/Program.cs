@@ -5,6 +5,7 @@ using BSEtunes.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using MySqlConnector;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -46,9 +47,11 @@ builder.Services.AddAutoMapper(cfg => { }, typeof(AlbumProfile));
 builder.Services.AddEndpointsApiExplorer();
 
 var apiName = builder.Configuration["Api:Name"] ?? builder.Environment.ApplicationName;
-
 builder.Services.AddSwaggerGen(options =>
 {
+    var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
+    
     options.SwaggerDoc("v1", new OpenApiInfo
     {
         Title = apiName,

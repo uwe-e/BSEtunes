@@ -1,9 +1,13 @@
-﻿using BSEtunes.Domain.Entities;
-
-namespace BSEtunes.Application.DTOs
+﻿namespace BSEtunes.Application.DTOs
 {
+    /// <summary>
+    /// Album Data Transfer Object
+    /// </summary>
     public class AlbumDto
     {
+        /// <summary>
+        /// The Id of the Album
+        /// </summary>
         public int Id { get; set; }
         public Guid AlbumId { get; set; }
         public ArtistDto Artist { get; set; } = null!;
