@@ -22,6 +22,7 @@
   <ItemGroup>
     <ProjectReference Include="..\BSEtunes.Application\BSEtunes.Application.csproj" />
     <ProjectReference Include="..\BSEtunes.Domain\BSEtunes.Domain.csproj" />
+    <ProjectReference Include="..\BSEtunes.Identity\BSEtunes.Identity.csproj" />
     <ProjectReference Include="..\BSEtunes.Infrastructure\BSEtunes.Infrastructure.csproj" />
   </ItemGroup>
 

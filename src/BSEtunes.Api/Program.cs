@@ -1,5 +1,6 @@
 using BSEtunes.Application.Mapping;
 using BSEtunes.Application.Services;
+using BSEtunes.Identity.Extensions;
 using BSEtunes.Infrastructure.Data;
 using BSEtunes.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -44,6 +45,9 @@ builder.Services.AddDbContext<RecordsDbContext>(options =>
 });
 builder.Services.AddAutoMapper(cfg => { }, typeof(AlbumProfile));
 
+builder.ConfigureBSEIdentity();
+
+
 builder.Services.AddEndpointsApiExplorer();
 
 var apiName = builder.Configuration["Api:Name"] ?? builder.Environment.ApplicationName;
@@ -72,8 +76,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
-
+app.MapBSEIdentityApi();
 app.MapControllers();
 
 app.Run();
