@@ -13,7 +13,6 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using Microsoft.OpenApi.Models;
 
 namespace BSEtunes.Identity.Extensions
 {
@@ -26,7 +25,13 @@ namespace BSEtunes.Identity.Extensions
         {
             ArgumentNullException.ThrowIfNull(endpoints);
 
-            var routeGroup = endpoints.MapGroup("");
+            var assemblyName = typeof(IdentityApiEndpointRouteBuilderExtensions)
+                .Assembly
+                .GetName()
+                .Name ?? "Identity";
+
+            var routeGroup = endpoints.MapGroup("")
+                .WithTags(assemblyName);
 
             routeGroup.MapPost("/login", async ([FromBody] LoginRequestDto login, [FromServices] IServiceProvider sp) =>
             {

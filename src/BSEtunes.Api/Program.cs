@@ -61,6 +61,31 @@ builder.Services.AddSwaggerGen(options =>
         Title = apiName,
         Version = "v1"
     });
+
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "Enter 'Bearer {token}'",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT"
+    });
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme, Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+
 });
 
 builder.Services.AddControllers();
@@ -70,8 +95,16 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+    // Serve static files from wwwroot in development so the external JS is available.
+    app.UseStaticFiles();
+    
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", apiName);
+        options.InjectJavascript("/swagger-ui/custom.js");
+        options.EnablePersistAuthorization();
+    });
 }
 
 app.UseHttpsRedirection();
