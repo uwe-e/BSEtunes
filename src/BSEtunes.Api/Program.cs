@@ -45,8 +45,8 @@ builder.Services.AddDbContext<RecordsDbContext>(options =>
 });
 builder.Services.AddAutoMapper(cfg => { }, typeof(AlbumProfile));
 
+// Configure Identity services
 builder.ConfigureBSEIdentity();
-
 
 builder.Services.AddEndpointsApiExplorer();
 
@@ -78,6 +78,7 @@ app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
+// Map Identity API endpoints
 app.MapBSEIdentityApi();
 app.MapControllers();
 

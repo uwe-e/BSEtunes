@@ -13,6 +13,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using Microsoft.OpenApi.Models;
 
 namespace BSEtunes.Identity.Extensions
 {
@@ -26,7 +27,7 @@ namespace BSEtunes.Identity.Extensions
             ArgumentNullException.ThrowIfNull(endpoints);
 
             var routeGroup = endpoints.MapGroup("");
-            
+
             routeGroup.MapPost("/login", async ([FromBody] LoginRequestDto login, [FromServices] IServiceProvider sp) =>
             {
                 if (login is null) return Results.BadRequest();
@@ -43,6 +44,13 @@ namespace BSEtunes.Identity.Extensions
                 return tokenResponse.IsProblem
                     ? Results.Problem(tokenResponse.ProblemDetail!, statusCode: StatusCodes.Status500InternalServerError)
                     : Results.Ok(tokenResponse.TokenDto!);
+            })
+            .WithName("Login")
+            .WithOpenApi(operation =>
+            {
+                operation.Summary = "User Login";
+                operation.Description = "Authenticates a user and returns JWT access and refresh tokens.";
+                return operation;
             });
 
             routeGroup.MapGet("/refresh", async ([FromBody] RefreshRequestDto refresh, [FromServices] IServiceProvider sp) =>
@@ -69,6 +77,12 @@ namespace BSEtunes.Identity.Extensions
                 await tokenStore.RevokeTokenAsync(storedToken.Token);
 
                 return Results.Ok(tokenResponse.TokenDto!);
+            })
+            .WithName("Refresh")
+            .WithOpenApi(operation => {
+                operation.Summary = "Refresh Tokens";
+                operation.Description = "Validates a refresh token and issues new JWT access and refresh tokens.";
+                return operation;
             });
         }
 

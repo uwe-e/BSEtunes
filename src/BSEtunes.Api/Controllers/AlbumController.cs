@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using BSEtunes.Application.DTOs;
 using BSEtunes.Application.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BSEtunes.Api.Controllers
@@ -33,6 +34,7 @@ namespace BSEtunes.Api.Controllers
         /// <param name="id">The Id</param>
         /// <returns>The album</returns>
         [HttpGet]
+        [Authorize(Roles = "tunes-users")]
         [Route("{id:int}")]
         public async Task<ActionResult<AlbumDto>> GetAlbumById(int id)
         {
