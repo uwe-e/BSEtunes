@@ -35,7 +35,7 @@ namespace BSEtunes.Identity.Extensions
 
             routeGroup.MapPost("/login", async ([FromBody] LoginRequestDto login, [FromServices] IServiceProvider sp) =>
             {
-                if (login is null) return Results.BadRequest();
+                if (login is null || string.IsNullOrWhiteSpace(login.Email) || string.IsNullOrWhiteSpace(login.Password)) return Results.BadRequest();
 
                 var userManager = sp.GetRequiredService<UserManager<ApplicationUser>>();
                 var config = sp.GetRequiredService<IConfiguration>();
@@ -60,7 +60,7 @@ namespace BSEtunes.Identity.Extensions
 
             routeGroup.MapGet("/refresh", async ([FromBody] RefreshRequestDto refresh, [FromServices] IServiceProvider sp) =>
             {
-                if (refresh is null) return Results.BadRequest();
+                if (refresh is null || string.IsNullOrWhiteSpace(refresh.UserId) || string.IsNullOrWhiteSpace(refresh.RefreshToken)) return Results.BadRequest();
 
                 var userManager = sp.GetRequiredService<UserManager<ApplicationUser>>();
                 var tokenStore = sp.GetRequiredService<IRefreshTokenRepository>();
