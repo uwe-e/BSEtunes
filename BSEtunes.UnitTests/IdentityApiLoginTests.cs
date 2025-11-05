@@ -69,6 +69,7 @@ namespace BSEtunes.Identity.Tests
 
             Assert.NotNull(method);
 
+            // Invoke the private method CreateAndSaveTokensAsync
             var task = (Task)method!.Invoke(null, new object?[] { user, userManagerMock.Object, tokenRepoMock.Object, config })!;
             await task.ConfigureAwait(false);
 
@@ -133,6 +134,7 @@ namespace BSEtunes.Identity.Tests
 
             Assert.NotNull(method);
 
+            // Invoke the private method CreateAndSaveTokensAsync
             var task = (Task)method!.Invoke(null, new object?[] { user, userManagerMock.Object, tokenRepoMock.Object, config })!;
             await task.ConfigureAwait(false);
 
