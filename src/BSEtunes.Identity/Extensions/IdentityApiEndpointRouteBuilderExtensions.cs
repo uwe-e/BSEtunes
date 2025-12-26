@@ -35,13 +35,13 @@ namespace BSEtunes.Identity.Extensions
 
             routeGroup.MapPost("/login", async ([FromBody] LoginRequestDto login, [FromServices] IServiceProvider sp) =>
             {
-                if (login is null || string.IsNullOrWhiteSpace(login.Email) || string.IsNullOrWhiteSpace(login.Password)) return Results.BadRequest();
+                if (login is null || string.IsNullOrWhiteSpace(login.UserName) || string.IsNullOrWhiteSpace(login.Password)) return Results.BadRequest();
 
                 var userManager = sp.GetRequiredService<UserManager<ApplicationUser>>();
                 var config = sp.GetRequiredService<IConfiguration>();
                 var tokenStore = sp.GetRequiredService<IRefreshTokenRepository>();
 
-                var user = await userManager.FindByNameAsync(login.Email);
+                var user = await userManager.FindByNameAsync(login.UserName);
                 if (user == null || !await userManager.CheckPasswordAsync(user, login.Password))
                     return Results.Unauthorized();
 
@@ -116,9 +116,9 @@ namespace BSEtunes.Identity.Extensions
             var roleClaims = roles.Select(r => new Claim(ClaimTypes.Role, r));
             var claims = new List<Claim>
             {
-                new Claim(JwtRegisteredClaimNames.Sub, user.Email),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(ClaimTypes.NameIdentifier, user.Id)
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id),
+                new Claim(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             }.Union(roleClaims);
 
             // Create signing credentials
@@ -161,7 +161,8 @@ namespace BSEtunes.Identity.Extensions
                 AccessToken = accessTokenString,
                 RefreshToken = newRefreshToken,
                 TokenType = "Bearer",
-                Expires = expiresIn
+                Expires = expiresAt
+                //Expires = expiresIn
             };
 
             return new TokenBuildResult

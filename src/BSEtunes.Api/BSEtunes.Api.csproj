@@ -32,4 +32,10 @@
     </Content>
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Update="wwwroot\swagger-ui\custom.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>

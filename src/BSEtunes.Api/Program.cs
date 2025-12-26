@@ -36,6 +36,8 @@ var connectionStringBuilder = new MySqlConnectionStringBuilder
 //}
 //#endif
 
+builder.Services.AddScoped<ISystemService, SystemService>();
+builder.Services.AddScoped<IDatabaseHealthRepository, DatabaseHealthRepository>();
 builder.Services.AddScoped<IAlbumService, AlbumService>();
 builder.Services.AddScoped<IAlbumRepository, AlbumRepository>();
 builder.Services.AddDbContext<RecordsDbContext>(options =>
