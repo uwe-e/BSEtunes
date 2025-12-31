@@ -8,5 +8,6 @@
         public TimeSpan Duration { get; set; }
         public Guid Guid { get; set; }
         public string Extension { get; set; } = null!;
+        public AlbumDto Album { get; set; } = null!;
     }
 }

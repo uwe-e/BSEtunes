@@ -24,7 +24,7 @@ public partial class RecordsDbContext : DbContext
 
     public virtual DbSet<history> histories { get; set; }
 
-    public virtual DbSet<interpreten> interpretens { get; set; }
+    public virtual DbSet<Artist> Artists { get; set; }
 
     public virtual DbSet<Track> Tracks { get; set; }
 
@@ -146,23 +146,23 @@ public partial class RecordsDbContext : DbContext
                 .HasColumnType("datetime");
         });
 
-        modelBuilder.Entity<interpreten>(entity =>
+        modelBuilder.Entity<Artist>(entity =>
         {
-            entity.HasKey(e => e.InterpretID).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
             entity
                 .ToTable("interpreten")
                 .UseCollation("utf8mb4_unicode_ci");
 
-            entity.HasIndex(e => e.Interpret, "iInterpret").HasAnnotation("MySql:FullTextIndex", true);
+            entity.HasIndex(e => e.Name, "iInterpret").HasAnnotation("MySql:FullTextIndex", true);
 
             entity.Property(e => e.Guid)
                 .HasMaxLength(36)
                 .HasDefaultValueSql("''");
-            entity.Property(e => e.Interpret)
+            entity.Property(e => e.Name)
                 .HasMaxLength(60)
                 .HasDefaultValueSql("''");
-            entity.Property(e => e.Interpret_Lang)
+            entity.Property(e => e.SortName)
                 .HasMaxLength(60)
                 .HasDefaultValueSql("''");
             entity.Property(e => e.Timestamp)

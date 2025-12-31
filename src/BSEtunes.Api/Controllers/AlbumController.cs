@@ -39,8 +39,12 @@ namespace BSEtunes.Api.Controllers
         public async Task<ActionResult<AlbumDto>> GetAlbumById(int id)
         {
             var album = await _service.GetAlbumByIdAsync(id);
+            if (album == null)
+            {
+                return NotFound();
+            }
             var dto = _mapper.Map<AlbumDto>(album);
-            return Ok(album);
+            return Ok(dto);
         }
     }
 }

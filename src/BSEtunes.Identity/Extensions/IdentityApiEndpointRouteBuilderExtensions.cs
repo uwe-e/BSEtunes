@@ -58,7 +58,7 @@ namespace BSEtunes.Identity.Extensions
                 return operation;
             });
 
-            routeGroup.MapGet("/refresh", async ([FromBody] RefreshRequestDto refresh, [FromServices] IServiceProvider sp) =>
+            routeGroup.MapPost("/refresh", async ([FromBody] RefreshRequestDto refresh, [FromServices] IServiceProvider sp) =>
             {
                 if (refresh is null || string.IsNullOrWhiteSpace(refresh.UserId) || string.IsNullOrWhiteSpace(refresh.RefreshToken)) return Results.BadRequest();
 

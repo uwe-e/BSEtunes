@@ -2,7 +2,6 @@
 using BSEtunes.Infrastructure.Data;
 using BSEtunes.Infrastructure.Mapping;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
 
 namespace BSEtunes.Infrastructure.Repositories
 {

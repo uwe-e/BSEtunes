@@ -10,7 +10,7 @@ namespace BSEtunes.Infrastructure.Mapping
 {
     public static class AlbumMapper
     {
-        public static AlbumEntity ToDomain(Album model, IEnumerable<Track> dbTracks)
+        public static AlbumEntity? ToDomain(Album model, IEnumerable<Track> dbTracks)
         {
             if (model == null) return null;
             return new AlbumEntity
@@ -18,6 +18,7 @@ namespace BSEtunes.Infrastructure.Mapping
                 Id = model.Album_Id,
                 AlbumId = Guid.TryParse(model.Album_AlbumId, out var guid) ? guid : Guid.Empty,
                 Title = model.Album_Title,
+                ArtistId = model.Artist_Id,
                 Artist = new ArtistEntity
                 {
                     Id = model.Artist_Id,
@@ -34,6 +35,7 @@ namespace BSEtunes.Infrastructure.Mapping
                     Guid = Guid.TryParse(t.Guid, out var guid) ? guid : Guid.Empty,
                     Extension = string.IsNullOrEmpty(t.FilePath) ? string.Empty : System.IO.Path.GetExtension(t.FilePath)
                 }).ToList(),
+                GenreId = model.Genre_Id,
                 Genre = new GenreEntity
                 { 
                     Id = model.Genre_Id ?? 0,

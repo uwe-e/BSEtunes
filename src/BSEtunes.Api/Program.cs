@@ -40,6 +40,9 @@ builder.Services.AddScoped<ISystemService, SystemService>();
 builder.Services.AddScoped<IDatabaseHealthRepository, DatabaseHealthRepository>();
 builder.Services.AddScoped<IAlbumService, AlbumService>();
 builder.Services.AddScoped<IAlbumRepository, AlbumRepository>();
+builder.Services.AddScoped<ITrackService, TrackService>();
+builder.Services.AddScoped<ITracksRepository, TracksRepository>();
+
 builder.Services.AddDbContext<RecordsDbContext>(options =>
 {
     options.UseMySql(connectionStringBuilder.ConnectionString,
