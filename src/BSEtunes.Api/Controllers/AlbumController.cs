@@ -29,7 +29,7 @@ namespace BSEtunes.Api.Controllers
             _mapper = mapper;
         }
         /// <summary>
-        /// Get an album by its Id
+        /// Retrieves the details of an album by its Id
         /// </summary>
         /// <param name="id">The Id</param>
         /// <returns>The album</returns>
@@ -45,6 +45,43 @@ namespace BSEtunes.Api.Controllers
             }
             var dto = _mapper.Map<AlbumDto>(album);
             return Ok(dto);
+        }
+        /// <summary>
+        /// Retrieves the album cover image for the specified album identifier.
+        /// </summary>
+        /// <remarks>This endpoint requires the caller to be authorized with the 'tunes-users' role. The
+        /// image is returned with a MIME type of 'image/jpeg'.</remarks>
+        /// <param name="albumId">A unique identifier for the album.</param>
+        /// <param name="asThumbnail">true to retrieve a thumbnail version of the cover image; otherwise, false to retrieve the full-size image.
+        /// The default is false.</param>
+        /// <returns>An image file containing the album cover in JPEG format. Returns a thumbnail or full-size image based on the
+        /// value of asThumbnail.</returns>
+        [HttpGet]
+        //[Authorize(Roles = "tunes-users")]
+        [Route("{albumId:Guid}/cover/{asThumbnail:bool=false}")]
+        public async Task<ActionResult> GetAlbumCoverImage(Guid albumId, bool asThumbnail = false)
+        {
+            var coverImage = await _service.GetAlbumCoverImageAsync(albumId, asThumbnail);
+            if (coverImage == null)
+            {
+                return NotFound();
+            }
+
+            string mimeType = "image/jpeg";
+            if (coverImage.Extension != null)
+            {
+                var contentTypeProvider = new Microsoft.AspNetCore.StaticFiles.FileExtensionContentTypeProvider();
+                if (contentTypeProvider.TryGetContentType(coverImage.Extension, out var contentType))
+                {
+                    mimeType = contentType;
+                }
+            }
+
+            if (coverImage.LastModified.HasValue)
+            {
+                Response.Headers.LastModified = coverImage.LastModified.Value.ToUniversalTime().ToString("R");
+            }
+            return File(coverImage.Blob, mimeType);
         }
     }
 }

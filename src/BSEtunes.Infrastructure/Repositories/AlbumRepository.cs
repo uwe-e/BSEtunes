@@ -28,5 +28,28 @@ namespace BSEtunes.Infrastructure.Repositories
 
             return AlbumMapper.ToDomain(dbAlbums, dbLieder);
         }
+
+        public async Task<CoverImageEntity?> GetAlbumCoverImageAsync(Guid albumId, bool asThumbnail)
+        {
+            var title = await _context.Titles
+                .Where(t => t.Guid == albumId.ToString())
+                .Select(t => new
+                {
+                    t.Extension,
+                    Image = asThumbnail ? t.Thumbnail : t.Cover,
+                    t.MutationDate
+                })
+                .FirstOrDefaultAsync();
+
+            if (title?.Extension == null || title.Image == null)
+                return null;
+
+            return new CoverImageEntity
+            {
+                Blob = title.Image,
+                Extension = title.Extension,
+                LastModified = title.MutationDate
+            };
+        }
     }
 }

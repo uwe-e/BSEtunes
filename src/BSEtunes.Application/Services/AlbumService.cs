@@ -15,5 +15,10 @@ namespace BSEtunes.Application.Services
         {
             return await _repository.GetAlbumByIdAsync(albumId);
         }
+
+        public async Task<CoverImageEntity?> GetAlbumCoverImageAsync(Guid albumId, bool asThumbnail)
+        {
+            return await _repository.GetAlbumCoverImageAsync(albumId, asThumbnail);
+        }
     }
 }

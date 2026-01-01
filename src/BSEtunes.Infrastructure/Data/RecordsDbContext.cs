@@ -36,7 +36,7 @@ public partial class RecordsDbContext : DbContext
 
     public virtual DbSet<playlistswithnumberofentry> playlistswithnumberofentries { get; set; }
 
-    public virtual DbSet<titel> titels { get; set; }
+    public virtual DbSet<Title> Titles { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -273,9 +273,9 @@ public partial class RecordsDbContext : DbContext
                 .UseCollation("utf8mb4_unicode_ci");
         });
 
-        modelBuilder.Entity<titel>(entity =>
+        modelBuilder.Entity<Title>(entity =>
         {
-            entity.HasKey(e => e.TitelID).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
             entity
                 .ToTable("titel")
@@ -292,11 +292,11 @@ public partial class RecordsDbContext : DbContext
             entity.Property(e => e.Guid)
                 .HasMaxLength(36)
                 .HasDefaultValueSql("''");
-            entity.Property(e => e.MutationDatum).HasColumnType("datetime");
+            entity.Property(e => e.MutationDate).HasColumnType("datetime");
             entity.Property(e => e.MutationNm)
                 .HasMaxLength(50)
                 .HasDefaultValueSql("''");
-            entity.Property(e => e.PictureFormat).HasMaxLength(5);
+            entity.Property(e => e.Extension).HasMaxLength(5);
             entity.Property(e => e.Timestamp)
                 .ValueGeneratedOnAddOrUpdate()
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
@@ -305,7 +305,7 @@ public partial class RecordsDbContext : DbContext
                 .HasMaxLength(60)
                 .HasDefaultValueSql("''");
             entity.Property(e => e.mp3tag).HasDefaultValueSql("'0'");
-            entity.Property(e => e.thumbnail).HasColumnType("mediumblob");
+            entity.Property(e => e.Thumbnail).HasColumnType("mediumblob");
         });
 
         OnModelCreatingPartial(modelBuilder);
