@@ -27,7 +27,20 @@ namespace BSEtunes.Api.Controllers
             _trackService = trackService;
             _mapper = mapper;
         }
-
+        /// <summary>
+        /// Retrieves the total number of tracks currently available to the user.
+        /// </summary>
+        /// <remarks>This endpoint is accessible only to users in the "tunes-users" role. The response
+        /// contains the count of tracks the authenticated user can access.</remarks>
+        /// <returns>A task that represents the asynchronous operation. The task result contains an <see cref="IActionResult"/>
+        /// with the count of available tracks as an integer value.</returns>
+        [HttpGet("count")]
+        [Authorize(Roles = "tunes-users")]
+        public Task<IActionResult> GetAvailableTrackCount()
+        {
+            return _trackService.GetAvailableTrackCountAsync()
+                .ContinueWith(t => (IActionResult)Ok(t.Result), TaskScheduler.Current);
+        }
         /// <summary>
         /// Retrieves the details of a track by its unique identifier.
         /// </summary>

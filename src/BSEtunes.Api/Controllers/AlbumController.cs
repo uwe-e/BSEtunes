@@ -31,6 +31,7 @@ namespace BSEtunes.Api.Controllers
         /// <summary>
         /// Retrieves the details of an album by its Id
         /// </summary>
+        /// <remarks>This endpoint requires the caller to be authorized with the 'tunes-users' role.</remarks>
         /// <param name="id">The Id</param>
         /// <returns>The album</returns>
         [HttpGet]
@@ -49,8 +50,7 @@ namespace BSEtunes.Api.Controllers
         /// <summary>
         /// Retrieves the album cover image for the specified album identifier.
         /// </summary>
-        /// <remarks>This endpoint requires the caller to be authorized with the 'tunes-users' role. The
-        /// image is returned with a MIME type of 'image/jpeg'.</remarks>
+        /// <remarks>The image is returned with its MIME type.</remarks>
         /// <param name="albumId">A unique identifier for the album.</param>
         /// <param name="asThumbnail">true to retrieve a thumbnail version of the cover image; otherwise, false to retrieve the full-size image.
         /// The default is false.</param>

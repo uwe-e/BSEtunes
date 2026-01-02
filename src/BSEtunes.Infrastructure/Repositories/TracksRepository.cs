@@ -13,7 +13,23 @@ namespace BSEtunes.Infrastructure.Repositories
         {
             _context = context;
         }
-
+        /// <summary>
+        /// Asynchronously retrieves the number of tracks that have an associated file path.
+        /// </summary>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the number of tracks with a
+        /// non-null file path.</returns>
+        public async Task<int> GetAvailableTrackCountAsync()
+        {
+            return await _context.Tracks
+                .Where(t => t.FilePath != null)
+                .CountAsync();
+        }
+        /// <summary>
+        /// Asynchronously retrieves a track by its unique identifier, including related album and artist information.
+        /// </summary>
+        /// <param name="id">The unique identifier of the track to retrieve.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the track entity with associated
+        /// album and artist data if found; otherwise, null.</returns>
         public async Task<TrackEntity?> GetTrackByIdAsync(int id)
         {
             var result = await _context.Tracks
@@ -25,7 +41,12 @@ namespace BSEtunes.Infrastructure.Repositories
 
             return result != null ? TrackMapper.ToDomain(result.Track, result.Album, result.Artist) : null;
         }
-
+        /// <summary>
+        /// Asynchronously retrieves a list of track IDs that have a file path and optionally match the specified genre.
+        /// </summary>
+        /// <param name="genreId">The identifier of the genre to filter tracks by. If null, tracks from all genres are included.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains a list of track IDs that match
+        /// the filter criteria, or null if no tracks are found.</returns>
         public async Task<IList<int>?> GetTrackIdsByFilter(int? genreId)
         {
             var query = _context.Tracks
@@ -49,5 +70,7 @@ namespace BSEtunes.Infrastructure.Repositories
 
             return await query.Select(t => t.Id).ToListAsync();
         }
+
+        
     }
 }
