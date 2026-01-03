@@ -51,5 +51,14 @@ namespace BSEtunes.Infrastructure.Repositories
                 LastModified = title.MutationDate
             };
         }
+
+        public async Task<IEnumerable<AlbumEntity>> GetFeaturedAlbumsAsync(int limit = 10)
+        {
+            var albums = await _context.Albums
+                .OrderByDescending(a => EF.Functions.Random())
+                .Take(limit)
+                .ToListAsync();
+            return AlbumMapper.ToDomain(albums) ?? Enumerable.Empty<AlbumEntity>();
+        }
     }
 }

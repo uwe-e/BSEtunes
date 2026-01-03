@@ -83,5 +83,21 @@ namespace BSEtunes.Api.Controllers
             }
             return File(coverImage.Blob, mimeType);
         }
+        /// <summary>
+        /// Retrieves a list of featured albums, limited to the specified number of results.
+        /// </summary>
+        /// <remarks>This endpoint is accessible only to users in the "tunes-users" role. The results are
+        /// ordered according to the service's featured album criteria.</remarks>
+        /// <param name="limit">The maximum number of featured albums to return. Must be a positive integer. The default value is 10.</param>
+        /// <returns>An <see cref="ActionResult{T}">ActionResult</see> containing a collection of <see cref="AlbumDto"/> objects
+        /// representing the featured albums. Returns an empty collection if no featured albums are available.</returns>
+        [HttpGet("featured")]
+        [Authorize(Roles = "tunes-users")]
+        public async Task<ActionResult<IEnumerable<AlbumDto>>> GetFeaturedAlbums([FromQuery] int limit = 10)
+        {
+            var albums = await _service.GetFeaturedAlbumsAsync(limit);
+            var dto = _mapper.Map<IEnumerable<AlbumDto>>(albums);
+            return Ok(dto);
+        }
     }
 }

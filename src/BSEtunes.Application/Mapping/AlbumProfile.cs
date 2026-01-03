@@ -16,17 +16,19 @@ namespace BSEtunes.Application.Mapping
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name));
             
             CreateMap<AlbumEntity, AlbumDto>()
-                .ForMember(dest => dest.Artist, opt => opt.MapFrom(src => new ArtistDto
-                {
-                    Id = src.Artist.Id,
-                    Name = src.Artist.Name,
-                    SortName = src.Artist.SortName
-                }))
-                .ForMember(dest => dest.Genre, opt => opt.MapFrom(src => new GenreDto
-                {
-                    Id = src.Genre.Id,
-                    Name = src.Genre.Name
-                }));
+                .ForMember(dest => dest.Artist, opt => opt.MapFrom(src => 
+                    src.Artist != null ? new ArtistDto
+                    {
+                        Id = src.Artist.Id,
+                        Name = src.Artist.Name,
+                        SortName = src.Artist.SortName
+                    } : null))
+                .ForMember(dest => dest.Genre, opt => opt.MapFrom(src => 
+                    src.Genre != null ? new GenreDto
+                    {
+                        Id = src.Genre.Id,
+                        Name = src.Genre.Name
+                    } : null));
                 //.ForMember(dest => dest.Tracks, opt => opt.MapFrom(src => new TrackDto
                 //{
                 //    Id = src.Track.Id,
