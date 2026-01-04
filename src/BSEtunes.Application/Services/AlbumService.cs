@@ -22,14 +22,18 @@ namespace BSEtunes.Application.Services
             return await _repository.GetAlbumCoverImageAsync(albumId, asThumbnail);
         }
 
-        public async Task<IEnumerable<AlbumEntity>> GetFeaturedAlbumsAsync(int limit)
-        {
-            return await _repository.GetFeaturedAlbumsAsync(limit);
-        }
-
         public async Task<IEnumerable<AlbumEntity>> GetSortedAlbumsAsync(AlbumSortOption sortBy = AlbumSortOption.Random, int limit = 10)
         {
             return await _repository.GetSortedAlbumsAsync(sortBy, limit);
+        }
+
+        public async Task<PagedResult<AlbumEntity>> GetPagedAlbumsAsync(
+            AlbumFilterOptions? filterOptions = null,
+            AlbumSortOption sortBy = AlbumSortOption.Random,
+            int pageNumber = 1,
+            int pageSize = 10)
+        {
+            return await _repository.GetPagedAlbumsAsync(filterOptions, sortBy, pageNumber, pageSize);
         }
     }
 }

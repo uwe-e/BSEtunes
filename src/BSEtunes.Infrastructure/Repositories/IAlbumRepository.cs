@@ -7,7 +7,13 @@ namespace BSEtunes.Infrastructure.Repositories
     {
         Task<AlbumEntity?> GetAlbumByIdAsync(int albumId);
         Task<CoverImageEntity?> GetAlbumCoverImageAsync(Guid albumId, bool asThumbnail);
-        Task<IEnumerable<AlbumEntity>> GetFeaturedAlbumsAsync(int limit);
-        Task<IEnumerable<AlbumEntity>> GetSortedAlbumsAsync(AlbumSortOption sortBy = AlbumSortOption.Random, int limit = 10);
+        Task<PagedResult<AlbumEntity>> GetPagedAlbumsAsync(
+                    AlbumFilterOptions? filterOptions = null,
+                    AlbumSortOption sortBy = AlbumSortOption.Random,
+                    int pageNumber = 1,
+                    int pageSize = 10);
+        Task<IEnumerable<AlbumEntity>> GetSortedAlbumsAsync(
+            AlbumSortOption sortBy = AlbumSortOption.Random, int limit = 10);
+
     }
 }

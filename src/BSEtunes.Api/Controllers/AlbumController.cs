@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using BSEtunes.Application.DTOs;
 using BSEtunes.Application.Services;
+using BSEtunes.Domain.Entities;
 using BSEtunes.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -85,24 +86,7 @@ namespace BSEtunes.Api.Controllers
             return File(coverImage.Blob, mimeType);
         }
         /// <summary>
-        /// Retrieves a list of featured albums, limited to the specified number of results.
-        /// </summary>
-        /// <remarks>This endpoint is accessible only to users in the "tunes-users" role. The results are
-        /// ordered according to the service's featured album criteria.</remarks>
-        /// <param name="limit">The maximum number of featured albums to return. Must be a positive integer. The default value is 10.</param>
-        /// <returns>An <see cref="ActionResult{T}">ActionResult</see> containing a collection of <see cref="AlbumDto"/> objects
-        /// representing the featured albums. Returns an empty collection if no featured albums are available.</returns>
-        [HttpGet("featured")]
-        [Authorize(Roles = "tunes-users")]
-        public async Task<ActionResult<IEnumerable<AlbumDto>>> GetFeaturedAlbums([FromQuery] int limit = 10)
-        {
-            var albums = await _service.GetFeaturedAlbumsAsync(limit);
-            var dto = _mapper.Map<IEnumerable<AlbumDto>>(albums);
-            return Ok(dto);
-        }
-
-        /// <summary>
-        /// Retrieves a sorted list of albums with optional filtering.
+        /// Retrieves a sorted list of albums without filtering.
         /// </summary>
         /// <remarks>
         /// Valid sortBy values: Random, Title, TitleDesc, Artist, ArtistDesc, Year, YearDesc, Newest, NewestDesc.
@@ -119,6 +103,79 @@ namespace BSEtunes.Api.Controllers
         {
             var albums = await _service.GetSortedAlbumsAsync(sortBy, limit);
             var dto = _mapper.Map<IEnumerable<AlbumDto>>(albums);
+            return Ok(dto);
+        }
+        /// <summary>
+        /// Retrieves a pageable, filterable, and sortable list of albums.
+        /// </summary>
+        /// <remarks>
+        /// Valid sortBy values: Random, Title, TitleDesc, Artist, ArtistDesc, Year, YearDesc, Newest, NewestDesc.
+        /// Values are case-insensitive.
+        /// 
+        /// Example request:
+        /// GET /api/albums/paged?genre=Rock&amp;artistName=Beatles&amp;yearFrom=1960&amp;yearTo=1970&amp;sortBy=Year&amp;pageNumber=1&amp;pageSize=20
+        /// </remarks>
+        /// <param name="genre">Filter by genre (partial match, case-insensitive).</param>
+        /// <param name="artistName">Filter by artist name (partial match, case-insensitive).</param>
+        /// <param name="yearFrom">Filter by minimum album year (inclusive).</param>
+        /// <param name="yearTo">Filter by maximum album year (inclusive).</param>
+        /// <param name="sortBy">The sort option for ordering albums. Default is Random.</param>
+        /// <param name="pageNumber">The page number to retrieve (1-based). Default is 1.</param>
+        /// <param name="pageSize">Number of albums per page. Default is 10.</param>
+        /// <returns>A paginated collection of filtered and sorted albums with pagination metadata.</returns>
+        [HttpGet]
+        [Authorize(Roles = "tunes-users")]
+        [Route("paged")]
+        public async Task<ActionResult<PagedResultDto<AlbumDto>>> GetPagedAlbums(
+            [FromQuery] string? genre = null,
+            [FromQuery] string? artistName = null,
+            [FromQuery] int? yearFrom = null,
+            [FromQuery] int? yearTo = null,
+            [FromQuery] AlbumSortOption sortBy = AlbumSortOption.Random,
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10)
+        {
+            // Validate pagination parameters
+            if (pageNumber < 1)
+            {
+                return BadRequest("Page number must be greater than 0.");
+            }
+
+            if (pageSize < 1 || pageSize > 100)
+            {
+                return BadRequest("Page size must be between 1 and 100.");
+            }
+
+            // Build filter options
+            var filterOptions = new AlbumFilterOptions
+            {
+                Genre = genre,
+                ArtistName = artistName,
+                YearFrom = yearFrom,
+                YearTo = yearTo
+            };
+
+            // Get paged results
+            var pagedResult = await _service.GetPagedAlbumsAsync(filterOptions, sortBy, pageNumber, pageSize);
+
+            // Map to DTO
+            var dto = new PagedResultDto<AlbumDto>
+            {
+                Items = _mapper.Map<IEnumerable<AlbumDto>>(pagedResult.Items),
+                TotalCount = pagedResult.TotalCount,
+                PageNumber = pagedResult.PageNumber,
+                PageSize = pagedResult.PageSize,
+                TotalPages = pagedResult.TotalPages,
+                HasPreviousPage = pagedResult.HasPreviousPage,
+                HasNextPage = pagedResult.HasNextPage
+            };
+
+            // Add pagination headers for better API experience
+            Response.Headers.Append("X-Total-Count", pagedResult.TotalCount.ToString());
+            Response.Headers.Append("X-Page-Number", pagedResult.PageNumber.ToString());
+            Response.Headers.Append("X-Page-Size", pagedResult.PageSize.ToString());
+            Response.Headers.Append("X-Total-Pages", pagedResult.TotalPages.ToString());
+
             return Ok(dto);
         }
     }

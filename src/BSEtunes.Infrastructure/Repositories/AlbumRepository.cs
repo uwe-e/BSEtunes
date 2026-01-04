@@ -77,13 +77,68 @@ namespace BSEtunes.Infrastructure.Repositories
             return AlbumMapper.ToDomain(albums) ?? Enumerable.Empty<AlbumEntity>();
         }
 
-        public async Task<IEnumerable<AlbumEntity>> GetFeaturedAlbumsAsync(int limit = 10)
+        public async Task<PagedResult<AlbumEntity>> GetPagedAlbumsAsync(
+            AlbumFilterOptions? filterOptions = null,
+            AlbumSortOption sortBy = AlbumSortOption.Random,
+            int pageNumber = 1,
+            int pageSize = 10)
         {
-            var albums = await _context.Albums
-                .OrderByDescending(a => EF.Functions.Random())
-                .Take(limit)
+            IQueryable<Models.Album> query = _context.Albums;
+
+            // Apply filters
+            if (filterOptions != null)
+            {
+                if (!string.IsNullOrWhiteSpace(filterOptions.Genre))
+                {
+                    query = query.Where(a => a.Genre_Name != null && a.Genre_Name.Contains(filterOptions.Genre));
+                }
+
+                if (!string.IsNullOrWhiteSpace(filterOptions.ArtistName))
+                {
+                    query = query.Where(a => a.Artist_Name != null && a.Artist_Name.Contains(filterOptions.ArtistName));
+                }
+
+                if (filterOptions.YearFrom.HasValue)
+                {
+                    query = query.Where(a => a.Album_Year >= filterOptions.YearFrom.Value);
+                }
+
+                if (filterOptions.YearTo.HasValue)
+                {
+                    query = query.Where(a => a.Album_Year <= filterOptions.YearTo.Value);
+                }
+            }
+
+            // Get total count before pagination
+            var totalCount = await query.CountAsync();
+
+            // Apply sorting
+            query = sortBy switch
+            {
+                AlbumSortOption.Title => query.OrderBy(a => a.Album_Title),
+                AlbumSortOption.TitleDesc => query.OrderByDescending(a => a.Album_Title),
+                AlbumSortOption.Artist => query.OrderBy(a => a.Artist_Name),
+                AlbumSortOption.ArtistDesc => query.OrderByDescending(a => a.Artist_Name),
+                AlbumSortOption.Year => query.OrderBy(a => a.Album_Year),
+                AlbumSortOption.YearDesc => query.OrderByDescending(a => a.Album_Year),
+                AlbumSortOption.Newest => query.OrderBy(a => a.Album_Id),
+                AlbumSortOption.NewestDesc => query.OrderByDescending(a => a.Album_Id),
+                _ => query.OrderByDescending(a => EF.Functions.Random())
+            };
+
+            // Apply pagination
+            var albums = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
-            return AlbumMapper.ToDomain(albums) ?? Enumerable.Empty<AlbumEntity>();
+
+            return new PagedResult<AlbumEntity>
+            {
+                Items = AlbumMapper.ToDomain(albums) ?? Enumerable.Empty<AlbumEntity>(),
+                TotalCount = totalCount,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
         }
     }
 }
