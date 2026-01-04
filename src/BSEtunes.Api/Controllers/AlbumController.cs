@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using BSEtunes.Application.DTOs;
 using BSEtunes.Application.Services;
+using BSEtunes.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -96,6 +97,27 @@ namespace BSEtunes.Api.Controllers
         public async Task<ActionResult<IEnumerable<AlbumDto>>> GetFeaturedAlbums([FromQuery] int limit = 10)
         {
             var albums = await _service.GetFeaturedAlbumsAsync(limit);
+            var dto = _mapper.Map<IEnumerable<AlbumDto>>(albums);
+            return Ok(dto);
+        }
+
+        /// <summary>
+        /// Retrieves a sorted list of albums with optional filtering.
+        /// </summary>
+        /// <remarks>
+        /// Valid sortBy values: Random, Title, TitleDesc, Artist, ArtistDesc, Year, YearDesc, Newest, NewestDesc.
+        /// Values are case-insensitive.
+        /// </remarks>
+        /// <param name="sortBy">The sort option for ordering albums. Default is Random.</param>
+        /// <param name="limit">Maximum number of albums to return. Default is 10.</param>
+        /// <returns>A collection of sorted albums.</returns>
+        [HttpGet]
+        [Authorize(Roles = "tunes-users")]
+        public async Task<ActionResult<IEnumerable<AlbumDto>>> GetSortedAlbums(
+            [FromQuery] AlbumSortOption sortBy = AlbumSortOption.Random,
+            [FromQuery] int limit = 10)
+        {
+            var albums = await _service.GetSortedAlbumsAsync(sortBy, limit);
             var dto = _mapper.Map<IEnumerable<AlbumDto>>(albums);
             return Ok(dto);
         }

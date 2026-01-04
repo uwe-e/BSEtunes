@@ -1,4 +1,5 @@
 ﻿using BSEtunes.Domain.Entities;
+using BSEtunes.Domain.Enums;
 using BSEtunes.Infrastructure.Data;
 using BSEtunes.Infrastructure.Mapping;
 using Microsoft.EntityFrameworkCore;
@@ -50,6 +51,30 @@ namespace BSEtunes.Infrastructure.Repositories
                 Extension = title.Extension,
                 LastModified = title.MutationDate
             };
+        }
+
+        public async Task<IEnumerable<AlbumEntity>> GetSortedAlbumsAsync(AlbumSortOption sortBy = AlbumSortOption.Random, int limit = 10)
+        {
+            IQueryable<Models.Album> query = _context.Albums;
+
+            query = sortBy switch
+            {
+                AlbumSortOption.Title => query.OrderBy(a => a.Album_Title),
+                AlbumSortOption.TitleDesc => query.OrderByDescending(a => a.Album_Title),
+                AlbumSortOption.Artist => query.OrderBy(a => a.Artist_Name),
+                AlbumSortOption.ArtistDesc => query.OrderByDescending(a => a.Artist_Name),
+                AlbumSortOption.Year => query.OrderBy(a => a.Album_Year),
+                AlbumSortOption.YearDesc => query.OrderByDescending(a => a.Album_Year),
+                AlbumSortOption.Newest => query.OrderBy(a => a.Album_Id),
+                AlbumSortOption.NewestDesc => query.OrderByDescending(a => a.Album_Id),
+                _ => query.OrderByDescending(a => EF.Functions.Random())
+            };
+
+            var albums = await query
+                .Take(limit)
+                .ToListAsync();
+
+            return AlbumMapper.ToDomain(albums) ?? Enumerable.Empty<AlbumEntity>();
         }
 
         public async Task<IEnumerable<AlbumEntity>> GetFeaturedAlbumsAsync(int limit = 10)

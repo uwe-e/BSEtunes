@@ -1,4 +1,5 @@
 ﻿using BSEtunes.Domain.Entities;
+using BSEtunes.Domain.Enums;
 using BSEtunes.Infrastructure.Repositories;
 
 namespace BSEtunes.Application.Services
@@ -24,6 +25,11 @@ namespace BSEtunes.Application.Services
         public async Task<IEnumerable<AlbumEntity>> GetFeaturedAlbumsAsync(int limit)
         {
             return await _repository.GetFeaturedAlbumsAsync(limit);
+        }
+
+        public async Task<IEnumerable<AlbumEntity>> GetSortedAlbumsAsync(AlbumSortOption sortBy = AlbumSortOption.Random, int limit = 10)
+        {
+            return await _repository.GetSortedAlbumsAsync(sortBy, limit);
         }
     }
 }

@@ -1,9 +1,11 @@
 using BSEtunes.Application.Mapping;
 using BSEtunes.Application.Services;
+using BSEtunes.Domain.Enums;
 using BSEtunes.Identity.Extensions;
 using BSEtunes.Infrastructure.Data;
 using BSEtunes.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using MySqlConnector;
 using System.Reflection;
@@ -65,6 +67,17 @@ builder.Services.AddSwaggerGen(options =>
     {
         Title = apiName,
         Version = "v1"
+    });
+
+    // Configure Swagger to show enums as strings
+    options.UseInlineDefinitionsForEnums();
+
+    options.MapType<AlbumSortOption>(() => new OpenApiSchema
+    {
+        Type = "string",
+        Enum = Enum.GetNames(typeof(AlbumSortOption))
+            .Select(name => (IOpenApiAny)new OpenApiString(name))
+            .ToList()
     });
 
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
