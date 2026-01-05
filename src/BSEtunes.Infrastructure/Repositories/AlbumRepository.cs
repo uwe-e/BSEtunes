@@ -92,6 +92,11 @@ namespace BSEtunes.Infrastructure.Repositories
                 {
                     query = query.Where(a => a.Genre_Name != null && a.Genre_Name.Contains(filterOptions.Genre));
                 }
+                
+                if (filterOptions.ArtistId.HasValue)
+                {
+                    query = query.Where(a => a.Artist_Id == filterOptions.ArtistId.Value);
+                }
 
                 if (!string.IsNullOrWhiteSpace(filterOptions.ArtistName))
                 {

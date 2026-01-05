@@ -109,13 +109,14 @@ namespace BSEtunes.Api.Controllers
         /// Retrieves a pageable, filterable, and sortable list of albums.
         /// </summary>
         /// <remarks>
-        /// Valid sortBy values: Random, Title, TitleDesc, Artist, ArtistDesc, Year, YearDesc, Newest, NewestDesc.
+        /// Valid sortBy values: Random, Title, TitleDesc, ArtistId, Artist, ArtistDesc, Year, YearDesc, Newest, NewestDesc.
         /// Values are case-insensitive.
         /// 
         /// Example request:
-        /// GET /api/albums/paged?genre=Rock&amp;artistName=Beatles&amp;yearFrom=1960&amp;yearTo=1970&amp;sortBy=Year&amp;pageNumber=1&amp;pageSize=20
+        /// GET /api/albums/paged?genre=Rock&amp;artistId=121&amp;artistName=Beatles&amp;yearFrom=1960&amp;yearTo=1970&amp;sortBy=Year&amp;pageNumber=1&amp;pageSize=20
         /// </remarks>
         /// <param name="genre">Filter by genre (partial match, case-insensitive).</param>
+        /// <param name="artistId">Filter by artist ID (exact match).</param>
         /// <param name="artistName">Filter by artist name (partial match, case-insensitive).</param>
         /// <param name="yearFrom">Filter by minimum album year (inclusive).</param>
         /// <param name="yearTo">Filter by maximum album year (inclusive).</param>
@@ -128,6 +129,7 @@ namespace BSEtunes.Api.Controllers
         [Route("paged")]
         public async Task<ActionResult<PagedResultDto<AlbumDto>>> GetPagedAlbums(
             [FromQuery] string? genre = null,
+            [FromQuery] int? artistId = null,
             [FromQuery] string? artistName = null,
             [FromQuery] int? yearFrom = null,
             [FromQuery] int? yearTo = null,
@@ -150,6 +152,7 @@ namespace BSEtunes.Api.Controllers
             var filterOptions = new AlbumFilterOptions
             {
                 Genre = genre,
+                ArtistId = artistId,
                 ArtistName = artistName,
                 YearFrom = yearFrom,
                 YearTo = yearTo
