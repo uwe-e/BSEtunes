@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BSEtunes.Infrastructure.Models;
 
-[Table("playlist")]
-public partial class Playlist
+[Table("playlistswithnumberofentry")]
+public partial class PlaylistSummary
 {
     [Column("ListId")]
     public int Id { get; set; }
@@ -13,7 +11,8 @@ public partial class Playlist
     public string Name { get; set; } = null!;
     [Column("User")]
     public string Owner { get; set; } = null!;
-    [Column("Guid")]
+    [Column("guid")]
     public string Guid { get; set; } = null!;
-    public DateTime Timestamp { get; set; }
+    [Column("Number")]
+    public long EntryCount { get; set; }
 }

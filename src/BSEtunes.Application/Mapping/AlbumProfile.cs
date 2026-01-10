@@ -48,6 +48,12 @@ namespace BSEtunes.Application.Mapping
             //    .ForMember(dest => dest.Extension, opt => opt.MapFrom(src => System.IO.Path.GetExtension(src.Liedpfad ?? string.Empty).TrimStart('.')))
             //    .ForMember(dest => dest.TrackNumber, opt => opt.MapFrom(src => src.TrackNumber ?? 0))
             //    .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name ?? string.Empty));
+            CreateMap<PlaylistSummaryEntity, PlaylistDto>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
+                .ForMember(dest => dest.Owner, opt => opt.MapFrom(src => src.Owner))
+                .ForMember(dest => dest.Guid, opt => opt.MapFrom(src => src.Guid))
+                .ForMember(dest => dest.EntryCount, opt => opt.MapFrom(src => src.EntryCount));
         }
     }
 }

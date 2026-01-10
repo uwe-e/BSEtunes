@@ -8,90 +8,122 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using MySqlConnector;
+using Serilog;
+using Serilog.Events;
 using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-var connectionStringBuilder = new MySqlConnectionStringBuilder
+// Configure Serilog
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", LogEventLevel.Information)
+    .MinimumLevel.Override("BSEtunes", LogEventLevel.Debug)
+    .Enrich.FromLogContext()
+    //.Enrich.WithThreadId()
+    //.Enrich.WithMachineName()
+    .WriteTo.Console(
+        outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}")
+    .WriteTo.File(
+        path: "logs/bsetunes-.log",
+        rollingInterval: RollingInterval.Day,
+        outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}] [{Level:u3}] {SourceContext} - {Message:lj}{NewLine}{Exception}",
+        retainedFileCountLimit: 30)
+    .CreateLogger();
+
+builder.Host.UseSerilog();
+
+try
 {
-    Server = builder.Configuration["mysql:server"],
-    Database = builder.Configuration["mysql:database"],
-    UserID = builder.Configuration["mysql:userid"],
-    Password = builder.Configuration["mysql:password"]
-};
+    Log.Information("Starting BSEtunes API");
 
-// Temporary design-time DbContext factory check that creates the DbContext and the models
-//#if DEBUG
-//try
-//{
-//    // Temporary check — safe to guard with DEBUG so it doesn't run in production
-//    var factory = new BSEtunes.Infrastructure.Data.DesignTimeRecordsDbContextFactory();
-//    using var db = factory.CreateDbContext(Array.Empty<string>());
-//    Console.WriteLine($"[DesignTimeFactory] CanConnect: {db.Database.CanConnect()}");
-//}
-//catch (Exception ex)
-//{
-//    Console.WriteLine($"[DesignTimeFactory] ERROR: {ex}");
-//    // Uncomment to prompt Visual Studio to attach when CLI invokes this:
-//    // System.Diagnostics.Debugger.Launch();
-//}
-//#endif
-
-builder.Services.AddScoped<ISystemService, SystemService>();
-builder.Services.AddScoped<IDatabaseHealthRepository, DatabaseHealthRepository>();
-builder.Services.AddScoped<IAlbumService, AlbumService>();
-builder.Services.AddScoped<IAlbumRepository, AlbumRepository>();
-builder.Services.AddScoped<ITrackService, TrackService>();
-builder.Services.AddScoped<ITracksRepository, TracksRepository>();
-
-builder.Services.AddDbContext<RecordsDbContext>(options =>
-{
-    options.UseMySql(connectionStringBuilder.ConnectionString,
-        ServerVersion.AutoDetect(connectionStringBuilder.ConnectionString));
-});
-builder.Services.AddAutoMapper(cfg => { }, typeof(AlbumProfile));
-
-// Configure Identity services
-builder.ConfigureBSEIdentity();
-
-builder.Services.AddEndpointsApiExplorer();
-
-var apiName = builder.Configuration["Api:Name"] ?? builder.Environment.ApplicationName;
-builder.Services.AddSwaggerGen(options =>
-{
-    var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
-    
-    options.SwaggerDoc("v1", new OpenApiInfo
+    // Add services to the container.
+    var connectionStringBuilder = new MySqlConnectionStringBuilder
     {
-        Title = apiName,
-        Version = "v1"
+        Server = builder.Configuration["mysql:server"],
+        Database = builder.Configuration["mysql:database"],
+        UserID = builder.Configuration["mysql:userid"],
+        Password = builder.Configuration["mysql:password"]
+    };
+
+    // Temporary design-time DbContext factory check that creates the DbContext and the models
+    //#if DEBUG
+    //try
+    //{
+    //    // Temporary check — safe to guard with DEBUG so it doesn't run in production
+    //    var factory = new BSEtunes.Infrastructure.Data.DesignTimeRecordsDbContextFactory();
+    //    using var db = factory.CreateDbContext(Array.Empty<string>());
+    //    Console.WriteLine($"[DesignTimeFactory] CanConnect: {db.Database.CanConnect()}");
+    //}
+    //catch (Exception ex)
+    //{
+    //    Console.WriteLine($"[DesignTimeFactory] ERROR: {ex}");
+    //    // Uncomment to prompt Visual Studio to attach when CLI invokes this:
+    //    // System.Diagnostics.Debugger.Launch();
+    //}
+    //#endif
+
+    builder.Services.AddScoped<ISystemService, SystemService>();
+    builder.Services.AddScoped<IDatabaseHealthRepository, DatabaseHealthRepository>();
+    builder.Services.AddScoped<IAlbumService, AlbumService>();
+    builder.Services.AddScoped<IAlbumRepository, AlbumRepository>();
+    builder.Services.AddScoped<ITrackService, TrackService>();
+    builder.Services.AddScoped<ITracksRepository, TracksRepository>();
+    builder.Services.AddScoped<IPlaylistsService, PlaylistsService>();
+    builder.Services.AddScoped<IPlaylistsRepository, PlaylistsRepository>();
+
+    builder.Services.AddDbContext<RecordsDbContext>(options =>
+    {
+        options.UseMySql(connectionStringBuilder.ConnectionString,
+            ServerVersion.AutoDetect(connectionStringBuilder.ConnectionString));
     });
+    builder.Services.AddAutoMapper(cfg => { }, typeof(AlbumProfile));
 
-    // Configure Swagger to show enums as strings
-    options.UseInlineDefinitionsForEnums();
+    // Configure Identity services
+    builder.ConfigureBSEIdentity();
 
-    options.MapType<AlbumSortOption>(() => new OpenApiSchema
+    builder.Services.AddEndpointsApiExplorer();
+
+    var apiName = builder.Configuration["Api:Name"] ?? builder.Environment.ApplicationName;
+    builder.Services.AddSwaggerGen(options =>
     {
-        Type = "string",
-        Enum = Enum.GetNames(typeof(AlbumSortOption))
-            .Select(name => (IOpenApiAny)new OpenApiString(name))
-            .ToList()
-    });
+        var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+        options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
 
-    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-    {
-        Description = "Enter 'Bearer {token}'",
-        Name = "Authorization",
-        In = ParameterLocation.Header,
-        Type = SecuritySchemeType.Http,
-        Scheme = "bearer",
-        BearerFormat = "JWT"
-    });
+        // Include Application project XML comments
+        var appXmlFile = "BSEtunes.Application.xml";
+        options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, appXmlFile));
 
-    options.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
+        options.SwaggerDoc("v1", new OpenApiInfo
+        {
+            Title = apiName,
+            Version = "v1"
+        });
+
+        // Configure Swagger to show enums as strings
+        options.UseInlineDefinitionsForEnums();
+
+        options.MapType<AlbumSortOption>(() => new OpenApiSchema
+        {
+            Type = "string",
+            Enum = Enum.GetNames(typeof(AlbumSortOption))
+                .Select(name => (IOpenApiAny)new OpenApiString(name))
+                .ToList()
+        });
+
+        options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+        {
+            Description = "Enter 'Bearer {token}'",
+            Name = "Authorization",
+            In = ParameterLocation.Header,
+            Type = SecuritySchemeType.Http,
+            Scheme = "bearer",
+            BearerFormat = "JWT"
+        });
+
+        options.AddSecurityRequirement(new OpenApiSecurityRequirement
+        {
         {
             new OpenApiSecurityScheme
             {
@@ -102,35 +134,55 @@ builder.Services.AddSwaggerGen(options =>
             },
             Array.Empty<string>()
         }
+        });
+
     });
 
-});
+    builder.Services.AddControllers();
 
-builder.Services.AddControllers();
+    var app = builder.Build();
 
-var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    // Serve static files from wwwroot in development so the external JS is available.
-    app.UseStaticFiles();
-    
-    app.UseSwagger();
-    app.UseSwaggerUI(options =>
+    // Configure the HTTP request pipeline.
+    if (app.Environment.IsDevelopment())
     {
-        options.SwaggerEndpoint("/swagger/v1/swagger.json", apiName);
-        options.InjectJavascript("/swagger-ui/custom.js");
-        options.EnablePersistAuthorization();
+        // Serve static files from wwwroot in development so the external JS is available.
+        app.UseStaticFiles();
+
+        app.UseSwagger();
+        app.UseSwaggerUI(options =>
+        {
+            options.SwaggerEndpoint("/swagger/v1/swagger.json", apiName);
+            options.InjectJavascript("/swagger-ui/custom.js");
+            options.EnablePersistAuthorization();
+        });
+    }
+
+    app.UseSerilogRequestLogging(options =>
+    {
+        options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
+        options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
+        {
+            diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value);
+            diagnosticContext.Set("UserAgent", httpContext.Request.Headers.UserAgent);
+        };
     });
+
+    app.UseHttpsRedirection();
+
+    app.UseAuthentication();
+    app.UseAuthorization();
+    // Map Identity API endpoints
+    app.MapBSEIdentityApi();
+    app.MapControllers();
+
+    app.Run();
+
 }
-
-app.UseHttpsRedirection();
-
-app.UseAuthentication();
-app.UseAuthorization();
-// Map Identity API endpoints
-app.MapBSEIdentityApi();
-app.MapControllers();
-
-app.Run();
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Application terminated unexpectedly");
+}
+finally
+{
+    Log.CloseAndFlush();
+}

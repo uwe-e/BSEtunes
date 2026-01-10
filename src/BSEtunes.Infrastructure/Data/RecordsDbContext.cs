@@ -30,11 +30,11 @@ public partial class RecordsDbContext : DbContext
 
     public virtual DbSet<medium> media { get; set; }
 
-    public virtual DbSet<playlist> playlists { get; set; }
+    public virtual DbSet<Playlist> Playlists { get; set; }
 
-    public virtual DbSet<playlistentry> playlistentries { get; set; }
+    public virtual DbSet<PlaylistEntry> PlaylistEntries { get; set; }
 
-    public virtual DbSet<playlistswithnumberofentry> playlistswithnumberofentries { get; set; }
+    public virtual DbSet<PlaylistSummary> PlaylistSummaries { get; set; }
 
     public virtual DbSet<Title> Titles { get; set; }
 
@@ -214,34 +214,34 @@ public partial class RecordsDbContext : DbContext
                 .HasColumnType("timestamp");
         });
 
-        modelBuilder.Entity<playlist>(entity =>
+        modelBuilder.Entity<Playlist>(entity =>
         {
-            entity.HasKey(e => e.ListId).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
             entity
                 .ToTable("playlist")
                 .UseCollation("utf8mb4_unicode_ci");
 
-            entity.HasIndex(e => e.guid, "iGuid").IsUnique();
+            entity.HasIndex(e => e.Guid, "iGuid").IsUnique();
 
-            entity.Property(e => e.ListName)
+            entity.Property(e => e.Name)
                 .HasMaxLength(100)
                 .HasDefaultValueSql("''");
             entity.Property(e => e.Timestamp)
                 .ValueGeneratedOnAddOrUpdate()
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("timestamp");
-            entity.Property(e => e.User)
+            entity.Property(e => e.Owner)
                 .HasMaxLength(50)
                 .HasDefaultValueSql("''");
-            entity.Property(e => e.guid)
+            entity.Property(e => e.Guid)
                 .HasMaxLength(36)
                 .HasDefaultValueSql("''");
         });
 
-        modelBuilder.Entity<playlistentry>(entity =>
+        modelBuilder.Entity<PlaylistEntry>(entity =>
         {
-            entity.HasKey(e => e.EntryId).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
             entity.UseCollation("utf8mb4_unicode_ci");
 
@@ -250,24 +250,24 @@ public partial class RecordsDbContext : DbContext
                 .ValueGeneratedOnAddOrUpdate()
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("timestamp");
-            entity.Property(e => e.sortorder).HasDefaultValueSql("'0'");
+            entity.Property(e => e.SortOrder).HasDefaultValueSql("'0'");
         });
 
-        modelBuilder.Entity<playlistswithnumberofentry>(entity =>
+        modelBuilder.Entity<PlaylistSummary>(entity =>
         {
             entity
                 .HasNoKey()
                 .ToView("playlistswithnumberofentries");
 
-            entity.Property(e => e.ListName)
+            entity.Property(e => e.Name)
                 .HasMaxLength(100)
                 .HasDefaultValueSql("''")
                 .UseCollation("utf8mb4_unicode_ci");
-            entity.Property(e => e.User)
+            entity.Property(e => e.Owner)
                 .HasMaxLength(50)
                 .HasDefaultValueSql("''")
                 .UseCollation("utf8mb4_unicode_ci");
-            entity.Property(e => e.guid)
+            entity.Property(e => e.Guid)
                 .HasMaxLength(36)
                 .HasDefaultValueSql("''")
                 .UseCollation("utf8mb4_unicode_ci");
@@ -304,7 +304,7 @@ public partial class RecordsDbContext : DbContext
             entity.Property(e => e.Titel)
                 .HasMaxLength(60)
                 .HasDefaultValueSql("''");
-            entity.Property(e => e.mp3tag).HasDefaultValueSql("'0'");
+            entity.Property(e => e.Mp3tag).HasDefaultValueSql("'0'");
             entity.Property(e => e.Thumbnail).HasColumnType("mediumblob");
         });
 

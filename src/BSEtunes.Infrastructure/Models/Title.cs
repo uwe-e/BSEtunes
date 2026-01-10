@@ -15,8 +15,8 @@ public partial class Title
     public int? ErschDatum { get; set; }
 
     public int? MediumID { get; set; }
-
-    public int? mp3tag { get; set; }
+    [Column("mp3tag")]
+    public int? Mp3tag { get; set; }
 
     public string Guid { get; set; } = null!;
     
@@ -38,6 +38,6 @@ public partial class Title
     public string? MutationNm { get; set; }
 
     public DateTime Timestamp { get; set; }
-
-    public int? genreId { get; set; }
+    [Column("genreId")]
+    public int? GenreId { get; set; }
 }
