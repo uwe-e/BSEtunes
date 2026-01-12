@@ -2,8 +2,8 @@
 using BSEtunes.Application.Services;
 using BSEtunes.Contracts.DTOs.Albums;
 using BSEtunes.Contracts.DTOs.Common;
+using BSEtunes.Contracts.Enums;
 using BSEtunes.Domain.Entities;
-using BSEtunes.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

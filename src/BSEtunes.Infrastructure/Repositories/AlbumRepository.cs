@@ -1,5 +1,5 @@
-﻿using BSEtunes.Domain.Entities;
-using BSEtunes.Domain.Enums;
+﻿using BSEtunes.Contracts.Enums;
+using BSEtunes.Domain.Entities;
 using BSEtunes.Infrastructure.Data;
 using BSEtunes.Infrastructure.Mapping;
 using Microsoft.EntityFrameworkCore;

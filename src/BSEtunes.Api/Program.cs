@@ -1,6 +1,6 @@
 using BSEtunes.Application.Mapping;
 using BSEtunes.Application.Services;
-using BSEtunes.Domain.Enums;
+using BSEtunes.Contracts.Enums;
 using BSEtunes.Identity.Extensions;
 using BSEtunes.Infrastructure.Data;
 using BSEtunes.Infrastructure.Repositories;

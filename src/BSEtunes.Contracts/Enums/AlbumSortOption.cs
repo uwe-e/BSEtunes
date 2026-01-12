@@ -1,4 +1,4 @@
-﻿namespace BSEtunes.Domain.Enums
+﻿namespace BSEtunes.Contracts.Enums
 {
     public enum AlbumSortOption
     {
