@@ -1,4 +1,4 @@
-﻿namespace BSEtunes.Application.DTOs
+﻿namespace BSEtunes.Contracts.DTOs.Albums
 {
     /// <summary>
     /// Album Data Transfer Object

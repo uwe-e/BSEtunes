@@ -92,7 +92,7 @@ try
         options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
 
         // Include Application project XML comments
-        var appXmlFile = "BSEtunes.Application.xml";
+        var appXmlFile = "BSEtunes.Contracts.xml";
         options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, appXmlFile));
 
         options.SwaggerDoc("v1", new OpenApiInfo
@@ -107,7 +107,7 @@ try
         options.MapType<AlbumSortOption>(() => new OpenApiSchema
         {
             Type = "string",
-            Enum = Enum.GetNames(typeof(AlbumSortOption))
+            Enum = Enum.GetNames<AlbumSortOption>()
                 .Select(name => (IOpenApiAny)new OpenApiString(name))
                 .ToList()
         });

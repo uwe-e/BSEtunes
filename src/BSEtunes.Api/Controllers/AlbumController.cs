@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
-using BSEtunes.Application.DTOs;
 using BSEtunes.Application.Services;
+using BSEtunes.Contracts.DTOs.Albums;
+using BSEtunes.Contracts.DTOs.Common;
 using BSEtunes.Domain.Entities;
 using BSEtunes.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;

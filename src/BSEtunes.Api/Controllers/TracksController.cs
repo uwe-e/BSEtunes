@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
-using BSEtunes.Application.DTOs;
 using BSEtunes.Application.Services;
+using BSEtunes.Contracts.DTOs.Albums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,22 +11,14 @@ namespace BSEtunes.Api.Controllers
     /// </summary>
     /// <remarks>This controller handles HTTP requests related to track operations, such as retrieving tracks
     /// details by ID.</remarks>
+    /// <remarks>
+    /// Initializes a new instance of the TracksController class with the specified track service.
+    /// </remarks>
+    /// <param name="trackService">The service used to manage and retrieve track data. Cannot be null.</param>
     [ApiController]
     [Route("api/tracks")]
-    public class TracksController : Controller
+    public class TracksController(ITrackService trackService, IMapper mapper) : Controller
     {
-        private readonly ITrackService _trackService;
-        private readonly IMapper _mapper;
-
-        /// <summary>
-        /// Initializes a new instance of the TracksController class with the specified track service.
-        /// </summary>
-        /// <param name="trackService">The service used to manage and retrieve track data. Cannot be null.</param>
-        public TracksController(ITrackService trackService, IMapper mapper)
-        {
-            _trackService = trackService;
-            _mapper = mapper;
-        }
         /// <summary>
         /// Retrieves the total number of tracks currently available to the user.
         /// </summary>
@@ -38,7 +30,7 @@ namespace BSEtunes.Api.Controllers
         [Authorize(Roles = "tunes-users")]
         public Task<IActionResult> GetAvailableTrackCount()
         {
-            return _trackService.GetAvailableTrackCountAsync()
+            return trackService.GetAvailableTrackCountAsync()
                 .ContinueWith(t => (IActionResult)Ok(t.Result), TaskScheduler.Current);
         }
         /// <summary>
@@ -50,12 +42,12 @@ namespace BSEtunes.Api.Controllers
         [Authorize(Roles = "tunes-users")]
         public async Task<ActionResult<TrackDto>> GetTrack(int id)
         {
-            var track = await _trackService.GetTrackByIdAsync(id);
+            var track = await trackService.GetTrackByIdAsync(id);
             if (track == null)
             {
                 return NotFound();
             }
-            var dto = _mapper.Map<TrackDto>(track);
+            var dto = mapper.Map<TrackDto>(track);
             return Ok(dto);
         }
 
@@ -68,7 +60,7 @@ namespace BSEtunes.Api.Controllers
         [Authorize(Roles = "tunes-users")]
         public async Task<IActionResult> GetTrackIdsByFilter(int? genreid = null)
         {
-            var trackIds = await _trackService.GetTrackIdsByFilter(genreid);
+            var trackIds = await trackService.GetTrackIdsByFilter(genreid);
             if (trackIds == null)
             {
                 return NotFound();

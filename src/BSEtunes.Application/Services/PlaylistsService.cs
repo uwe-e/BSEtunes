@@ -3,22 +3,21 @@ using BSEtunes.Infrastructure.Repositories;
 
 namespace BSEtunes.Application.Services
 {
-    public class PlaylistsService : IPlaylistsService
+    public class PlaylistsService(IPlaylistsRepository repository) : IPlaylistsService
     {
-        private readonly IPlaylistsRepository _repository;
-
-        public PlaylistsService(IPlaylistsRepository repository)
+        public Task<PagedResult<PlaylistEntryEntity>> GetPagedPlaylistEntriesByIdAsync(int playlistId, string owner, int pageNumber, int pageSize)
         {
-            _repository = repository;
+            return repository.GetPagedPlaylistEntriesByIdAsync(playlistId, owner, pageNumber, pageSize);
         }
+
         public async Task<PagedResult<PlaylistSummaryEntity>> GetPagedPlaylistsByOwnerAsync(string owner, int pageNumber = 1, int pageSize = 10)
         {
-            return await _repository.GetPagedPlaylistsByOwnerAsync(owner, pageNumber, pageSize);
+            return await repository.GetPagedPlaylistsByOwnerAsync(owner, pageNumber, pageSize);
         }
 
         public async Task<PlaylistSummaryEntity?> GetPlaylistByOwnerAndIdAsync(string owner, int playlistId)
         {
-            return await _repository.GetPlaylistByOwnerAndIdAsync(owner, playlistId);
+            return await repository.GetPlaylistByOwnerAndIdAsync(owner, playlistId);
         }
     }
 }

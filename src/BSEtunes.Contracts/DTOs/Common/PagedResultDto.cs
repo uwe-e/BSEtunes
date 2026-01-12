@@ -1,4 +1,4 @@
-namespace BSEtunes.Application.DTOs
+namespace BSEtunes.Contracts.DTOs.Common
 {
     public class PagedResultDto<T>
     {

@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
-using BSEtunes.Application.DTOs;
+using BSEtunes.Contracts.DTOs.Albums;
+using BSEtunes.Contracts.DTOs.Playlists;
 using BSEtunes.Domain.Entities;
 
 namespace BSEtunes.Application.Mapping
@@ -54,6 +55,9 @@ namespace BSEtunes.Application.Mapping
                 .ForMember(dest => dest.Owner, opt => opt.MapFrom(src => src.Owner))
                 .ForMember(dest => dest.Guid, opt => opt.MapFrom(src => src.Guid))
                 .ForMember(dest => dest.EntryCount, opt => opt.MapFrom(src => src.EntryCount));
+
+            CreateMap<PlaylistEntryEntity, PlaylistEntryDto>()
+                .ForMember(dest => dest.Track, opt => opt.MapFrom(src => src.Track));
         }
     }
 }

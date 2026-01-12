@@ -6,8 +6,14 @@ namespace BSEtunes.Infrastructure.Repositories
     {
         Task<PagedResult<PlaylistSummaryEntity>> GetPagedPlaylistsByOwnerAsync(
             string owner,
-            int pageNumber = 1,
-            int pageSize = 10);
+            int pageNumber,
+            int pageSize);
         Task<PlaylistSummaryEntity?> GetPlaylistByOwnerAndIdAsync(string owner, int playlistId);
+
+        Task<PagedResult<PlaylistEntryEntity>> GetPagedPlaylistEntriesByIdAsync(
+            int playlistId,
+            string owner,
+            int pageNumber,
+            int pageSize);
     }
 }

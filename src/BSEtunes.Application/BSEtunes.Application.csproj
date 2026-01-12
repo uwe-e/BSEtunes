@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\BSEtunes.Contracts\BSEtunes.Contracts.csproj" />
     <ProjectReference Include="..\BSEtunes.Domain\BSEtunes.Domain.csproj" />
     <ProjectReference Include="..\BSEtunes.Infrastructure\BSEtunes.Infrastructure.csproj" />
   </ItemGroup>

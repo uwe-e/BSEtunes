@@ -71,6 +71,33 @@ namespace BSEtunes.Infrastructure.Repositories
             return await query.Select(t => t.Id).ToListAsync();
         }
 
-        
+        /// <summary>
+        /// Asynchronously retrieves multiple tracks by their unique identifiers, including related album and artist information.
+        /// </summary>
+        /// <param name="ids">The collection of unique identifiers of the tracks to retrieve.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains a list of track entities with associated
+        /// album and artist data for all found tracks.</returns>
+        public async Task<IList<TrackEntity>> GetTracksByIdsAsync(IEnumerable<int> ids)
+        {
+            var trackIds = ids.ToList();
+            
+            if (!trackIds.Any())
+            {
+                return new List<TrackEntity>();
+            }
+
+            var results = await _context.Tracks
+                .Where(t => trackIds.Contains(t.Id))
+                .Join(_context.Albums, t => t.AlbumId, a => a.Album_Id, (t, a) => new { Track = t, Album = a })
+                .Join(_context.Artists, ta => ta.Album.Artist_Id, ar => ar.Id, (ta, ar) => new { ta.Track, ta.Album, Artist = ar })
+                .Select(x => new { x.Track, x.Album, x.Artist })
+                .ToListAsync();
+
+            return results
+                .Select(r => TrackMapper.ToDomain(r.Track, r.Album, r.Artist))
+                .Where(t => t != null)
+                .Select(t => t!)
+                .ToList();
+        }
     }
 }

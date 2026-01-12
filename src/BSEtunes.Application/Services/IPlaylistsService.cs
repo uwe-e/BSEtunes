@@ -10,5 +10,11 @@ namespace BSEtunes.Application.Services
             int pageSize = 10);
 
         Task<PlaylistSummaryEntity?> GetPlaylistByOwnerAndIdAsync(string owner, int playlistId);
+
+        Task<PagedResult<PlaylistEntryEntity>> GetPagedPlaylistEntriesByIdAsync(
+            int playlistId,
+            string owner,
+            int pageNumber,
+            int pageSize);
     }
 }

@@ -7,5 +7,6 @@ namespace BSEtunes.Infrastructure.Repositories
         Task<int> GetAvailableTrackCountAsync();
         Task<TrackEntity?> GetTrackByIdAsync(int id);
         Task<IList<int>?> GetTrackIdsByFilter(int? genreId);
+        Task<IList<TrackEntity>> GetTracksByIdsAsync(IEnumerable<int> ids);
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace BSEtunes.Application.DTOs
+﻿namespace BSEtunes.Contracts.DTOs.Playlists
 {
     /// <summary>
     /// Represents a data transfer object for a playlist, containing identifying information, ownership details, and a
