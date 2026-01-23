@@ -78,7 +78,10 @@ try
         options.UseMySql(connectionStringBuilder.ConnectionString,
             ServerVersion.AutoDetect(connectionStringBuilder.ConnectionString));
     });
-    builder.Services.AddAutoMapper(cfg => { }, typeof(AlbumProfile));
+    builder.Services.AddAutoMapper(cfg =>
+    {
+        cfg.LicenseKey = builder.Configuration["AutoMapper:LicenseKey"];
+    }, typeof(AlbumProfile));
 
     // Configure Identity services
     builder.ConfigureBSEIdentity();
