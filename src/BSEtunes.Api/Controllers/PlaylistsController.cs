@@ -121,7 +121,7 @@ namespace BSEtunes.Api.Controllers
         /// is not authenticated.</returns>
         [HttpGet("{playlistId:int}/entries")]
         [Authorize(Roles = "tunes-users")]
-        public async Task<ActionResult<PagedResult<PlaylistEntryEntity>>> GetPagedPlaylistEntriesByIdAsync(
+        public async Task<ActionResult<PagedResultDto<PlaylistEntryDto>>> GetPagedPlaylistEntriesByIdAsync(
             int playlistId,
             [FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 50)
