@@ -24,7 +24,7 @@
         /// <summary>
         /// Gets or sets the globally unique identifier of the playlist.
         /// </summary>
-        public string Guid { get; set; } = null!;
+        public Guid Guid { get; set; }
         /// <summary>
         /// Gets or sets the total number of entries in the playlist.
         /// </summary>
