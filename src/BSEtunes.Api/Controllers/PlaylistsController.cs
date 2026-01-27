@@ -58,6 +58,11 @@ namespace BSEtunes.Api.Controllers
                 .FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress")
                 ?.Value;
 
+            if (string.IsNullOrEmpty(userEmail))
+            {
+                return Unauthorized();
+            }
+
             var pagedResult = await service.GetPagedPlaylistsByOwnerAsync(userEmail, pageNumber, pageSize);
             // Map to DTO
             var dto = new PagedResultDto<PlaylistDto>
@@ -87,9 +92,9 @@ namespace BSEtunes.Api.Controllers
         /// <param name="playlistId">The unique identifier of the playlist.</param>
         /// <returns>Returns the playlist matching the specified identifier and owned by the authenticated user. Returns
         /// Unauthorized if the user claim is missing, or NotFound if the playlist does not exist or does not belong to the user.</returns>
-        [HttpGet("{playlistId:int}")]
+        [HttpGet("{playlistId:int}", Name = "GetPlaylistById")]
         [Authorize(Roles = "tunes-users")]
-        public async Task<ActionResult<PagedResultDto<PlaylistDto>>> GetPlaylistByIdAsync(int playlistId)
+        public async Task<ActionResult<PlaylistDto>> GetPlaylistByIdAsync(int playlistId)
         {
             var userEmail = User.Claims
                 .FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress")
@@ -197,6 +202,45 @@ namespace BSEtunes.Api.Controllers
             
             return Ok(trackIds);
         }
+        /// <summary>
+        /// Creates a new playlist for the authenticated user.
+        /// </summary>
+        /// <remarks>Only authenticated users with the 'tunes-users' role can access this endpoint.
+        /// The playlist will be created with the authenticated user as the owner.</remarks>
+        /// <param name="createPlaylistDto">The data transfer object containing playlist creation details.</param>
+        /// <returns>Returns the created playlist with a 201 Created status and location header. Returns
+        /// Unauthorized if the user claim is missing, or BadRequest if the model validation fails.</returns>
+        [HttpPost]
+        [Authorize(Roles = "tunes-users")]
+        public async Task<ActionResult<PlaylistDto>> CreatePlaylistAsync([FromBody] CreatePlaylistDto createPlaylistDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
 
+            var userEmail = User.Claims
+                .FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress")
+                ?.Value;
+            
+            if (string.IsNullOrEmpty(userEmail))
+            {
+                return Unauthorized();
+            }
+
+            var playlist = new PlaylistEntity
+            {
+                Owner = userEmail,
+                Guid = Guid.NewGuid()
+            };
+            mapper.Map(createPlaylistDto, playlist);
+            var createdPlaylist = await service.CreatePlaylistAsync(playlist);
+            var dto = mapper.Map<PlaylistDto>(createdPlaylist);
+
+            return CreatedAtRoute(
+                "GetPlaylistById",
+                new { playlistId = createdPlaylist.Id },
+                dto);
+        }
     }
 }

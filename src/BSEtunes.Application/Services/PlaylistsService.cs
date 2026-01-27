@@ -5,6 +5,11 @@ namespace BSEtunes.Application.Services
 {
     public class PlaylistsService(IPlaylistsRepository repository) : IPlaylistsService
     {
+        public Task<PlaylistSummaryEntity> CreatePlaylistAsync(PlaylistEntity playlist)
+        {
+            return repository.CreatePlaylistAsync(playlist);
+        }
+
         public Task<PagedResult<PlaylistEntryEntity>> GetPagedPlaylistEntriesByIdAsync(int playlistId, string owner, int pageNumber, int pageSize)
         {
             return repository.GetPagedPlaylistEntriesByIdAsync(playlistId, owner, pageNumber, pageSize);

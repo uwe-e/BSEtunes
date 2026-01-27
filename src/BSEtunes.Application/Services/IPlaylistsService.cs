@@ -4,6 +4,8 @@ namespace BSEtunes.Application.Services
 {
     public interface IPlaylistsService
     {
+        Task<PlaylistSummaryEntity> CreatePlaylistAsync(PlaylistEntity playlist);
+        
         Task<PagedResult<PlaylistSummaryEntity>> GetPagedPlaylistsByOwnerAsync(
             string owner,
             int pageNumber = 1,

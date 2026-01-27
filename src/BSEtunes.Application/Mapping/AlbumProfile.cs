@@ -58,6 +58,9 @@ namespace BSEtunes.Application.Mapping
 
             CreateMap<PlaylistEntryEntity, PlaylistEntryDto>()
                 .ForMember(dest => dest.Track, opt => opt.MapFrom(src => src.Track));
+
+            CreateMap<CreatePlaylistDto, PlaylistEntity>()
+                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name));
         }
     }
 }

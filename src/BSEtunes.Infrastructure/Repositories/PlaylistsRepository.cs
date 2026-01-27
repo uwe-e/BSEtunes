@@ -11,6 +11,38 @@ namespace BSEtunes.Infrastructure.Repositories
         RecordsDbContext context,
         ILogger<PlaylistsRepository> logger, ITracksRepository tracksRepository) : IPlaylistsRepository
     {
+        public async Task<PlaylistSummaryEntity> CreatePlaylistAsync(PlaylistEntity playlist)
+        {
+            var stopwatch = Stopwatch.StartNew();
+
+            // Map PlaylistEntity to Playlist model
+            var playlistModel = new Playlist
+            {
+                Name = playlist.Name,
+                Owner = playlist.Owner,
+                Guid = (playlist.Guid == Guid.Empty ? Guid.NewGuid() : playlist.Guid).ToString()
+            };
+
+            // Add to context and save
+            context.Playlists.Add(playlistModel);
+            await context.SaveChangesAsync();
+
+            stopwatch.Stop();
+            logger.LogDebug("CreatePlaylistAsync took {ElapsedMs}ms for owner {Owner}, created playlist {PlaylistId}",
+                stopwatch.ElapsedMilliseconds, playlistModel.Owner, playlistModel.Id);
+
+            // Return summary entity
+            return new PlaylistSummaryEntity
+            {
+                Id = playlistModel.Id,
+                Name = playlistModel.Name,
+                Owner = playlistModel.Owner,
+                Guid = playlistModel.Guid,
+                EntryCount = 0,
+                CoverAlbumIds = []
+            };
+        }
+
         public async Task<PagedResult<PlaylistSummaryEntity>> GetPagedPlaylistsByOwnerAsync(string owner, int pageNumber = 1, int pageSize = 10)
         {
             var totalStopwatch = Stopwatch.StartNew();
@@ -225,6 +257,8 @@ namespace BSEtunes.Infrastructure.Repositories
 
             return trackIds;
         }
+
+        
     }
 }
 
