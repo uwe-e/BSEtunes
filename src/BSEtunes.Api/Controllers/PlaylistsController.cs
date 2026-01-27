@@ -169,5 +169,34 @@ namespace BSEtunes.Api.Controllers
             return Ok(dto);
         }
 
+        /// <summary>
+        /// Retrieves all track identifiers for the specified playlist.
+        /// </summary>
+        /// <remarks>Only authenticated users with the 'tunes-users' role can access this endpoint. 
+        /// The user must be the owner of the playlist.</remarks>
+        /// <param name="playlistId">The unique identifier of the playlist.</param>
+        /// <param name="randomize">Indicates whether to randomize the order of track IDs.</param>
+        /// <returns>Returns a list of track identifiers for the specified playlist. Returns 
+        /// Unauthorized if the user claim is missing.</returns>
+        [HttpGet("{playlistId:int}/trackids")]
+        [Authorize(Roles = "tunes-users")]
+        public async Task<ActionResult<List<int>>> GetTrackIdsByPlaylistIdAsync(
+            int playlistId,
+            [FromQuery] bool randomize = false)
+        {
+            var userEmail = User.Claims
+                .FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress")
+                ?.Value;
+            
+            if (string.IsNullOrEmpty(userEmail))
+            {
+                return Unauthorized();
+            }
+            
+            var trackIds = await service.GetTrackIdsByPlaylistIdAsync(playlistId, randomize);
+            
+            return Ok(trackIds);
+        }
+
     }
 }

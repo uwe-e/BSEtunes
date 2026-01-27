@@ -197,8 +197,34 @@ namespace BSEtunes.Infrastructure.Repositories
                 PageSize = pageSize
             };
         }
+
+        /// <summary>
+        /// Retrieves all track IDs for a specific playlist ordered by sort order.
+        /// </summary>
+        /// <param name="playlistId">The unique identifier of the playlist.</param>
+        /// <returns>A list of track IDs ordered by their sort order in the playlist.</returns>
+        public async Task<List<int>> GetTrackIdsByPlaylistIdAsync(int playlistId, bool randomize = false)
+        {
+            var stopwatch = Stopwatch.StartNew();
+
+            var query = context.PlaylistEntries
+                .Where(pe => pe.PlaylistId == playlistId);
+
+            // Apply ordering based on randomize flag
+            var orderedQuery = randomize
+                ? query.OrderBy(pe => EF.Functions.Random()) // Database-level randomization
+                : query.OrderBy(pe => pe.SortOrder);
+
+            var trackIds = await orderedQuery
+                .Select(pe => pe.TrackId)
+                .ToListAsync();
+
+            stopwatch.Stop();
+            logger.LogDebug("GetTrackIdsByPlaylistIdAsync took {ElapsedMs}ms for playlistId {PlaylistId}, returned {Count} track IDs (randomized: {Randomized})",
+                stopwatch.ElapsedMilliseconds, playlistId, trackIds.Count, randomize);
+
+            return trackIds;
+        }
     }
 }
-
-     
 

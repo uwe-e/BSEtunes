@@ -19,5 +19,10 @@ namespace BSEtunes.Application.Services
         {
             return await repository.GetPlaylistByOwnerAndIdAsync(owner, playlistId);
         }
+
+        public async Task<List<int>> GetTrackIdsByPlaylistIdAsync(int playlistId, bool randomize = false)
+        {
+            return await repository.GetTrackIdsByPlaylistIdAsync(playlistId, randomize);
+        }
     }
 }
