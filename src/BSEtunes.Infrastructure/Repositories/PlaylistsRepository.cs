@@ -258,7 +258,45 @@ namespace BSEtunes.Infrastructure.Repositories
             return trackIds;
         }
 
-        
+        public async Task<bool> DeletePlaylistAsync(int playlistId, string owner)
+        {
+            var stopwatch = Stopwatch.StartNew();
+
+            await using var transaction = await context.Database.BeginTransactionAsync();
+
+            try
+            {
+                var playlist = await context.Playlists
+                    .FirstOrDefaultAsync(p => p.Id == playlistId && p.Owner == owner);
+
+                if (playlist == null)
+                {
+                    await transaction.RollbackAsync(); // Explicit rollback
+                    logger.LogDebug("DeletePlaylistAsync: Playlist {PlaylistId} not found", playlistId);
+                    return false;
+                }
+
+                await context.PlaylistEntries
+                    .Where(pe => pe.PlaylistId == playlistId)
+                    .ExecuteDeleteAsync(); // Bulk delete (EF Core 7+)
+
+                context.Playlists.Remove(playlist);
+                await context.SaveChangesAsync();
+
+                await transaction.CommitAsync();
+
+                stopwatch.Stop();
+                logger.LogDebug("DeletePlaylistAsync took {ElapsedMs}ms for playlistId {PlaylistId}",
+                    stopwatch.ElapsedMilliseconds, playlistId);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error deleting playlist {PlaylistId}", playlistId);
+                throw;
+            }
+        }
     }
 }
 

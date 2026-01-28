@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using BSEtunes.Api.Extensions;
 using BSEtunes.Application.Services;
 using BSEtunes.Contracts.DTOs.Common;
 using BSEtunes.Contracts.DTOs.Playlists;
@@ -54,10 +55,8 @@ namespace BSEtunes.Api.Controllers
                 return BadRequest("Page size must be between 1 and 100.");
             }
 
-            var userEmail = User.Claims
-                .FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress")
-                ?.Value;
-
+            var userEmail = User.GetUserEmail();
+            
             if (string.IsNullOrEmpty(userEmail))
             {
                 return Unauthorized();
@@ -96,10 +95,8 @@ namespace BSEtunes.Api.Controllers
         [Authorize(Roles = "tunes-users")]
         public async Task<ActionResult<PlaylistDto>> GetPlaylistByIdAsync(int playlistId)
         {
-            var userEmail = User.Claims
-                .FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress")
-                ?.Value;
-            
+            var userEmail = User.GetUserEmail();
+
             if (string.IsNullOrEmpty(userEmail))
             {
                 return Unauthorized();
@@ -131,9 +128,7 @@ namespace BSEtunes.Api.Controllers
             [FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 50)
         {
-            var userEmail = User.Claims
-                .FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress")
-                ?.Value;
+            var userEmail = User.GetUserEmail();
 
             if (string.IsNullOrEmpty(userEmail))
             {
@@ -189,10 +184,8 @@ namespace BSEtunes.Api.Controllers
             int playlistId,
             [FromQuery] bool randomize = false)
         {
-            var userEmail = User.Claims
-                .FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress")
-                ?.Value;
-            
+            var userEmail = User.GetUserEmail();
+
             if (string.IsNullOrEmpty(userEmail))
             {
                 return Unauthorized();
@@ -219,10 +212,8 @@ namespace BSEtunes.Api.Controllers
                 return BadRequest(ModelState);
             }
 
-            var userEmail = User.Claims
-                .FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress")
-                ?.Value;
-            
+            var userEmail = User.GetUserEmail();
+
             if (string.IsNullOrEmpty(userEmail))
             {
                 return Unauthorized();
@@ -241,6 +232,39 @@ namespace BSEtunes.Api.Controllers
                 "GetPlaylistById",
                 new { playlistId = createdPlaylist.Id },
                 dto);
+        }
+        /// <summary>
+        /// Deletes a playlist by its identifier for the authenticated user.
+        /// </summary>
+        /// <remarks>Only authenticated users with the 'tunes-users' role can access this endpoint.
+        /// The user must be the owner of the playlist to delete it.</remarks>
+        /// <param name="playlistId">The unique identifier of the playlist to delete.</param>
+        /// <returns>Returns NoContent (204) if the playlist was successfully deleted. Returns
+        /// Unauthorized if the user claim is missing, or NotFound if the playlist does not exist or does not belong to the user.</returns>
+        [HttpDelete("{playlistId:int}")]
+        [Authorize(Roles = "tunes-users")]
+        public async Task<ActionResult> DeletePlaylistAsync(int playlistId)
+        {
+            var userEmail = User.GetUserEmail();
+
+            if (string.IsNullOrEmpty(userEmail))
+            {
+                return Unauthorized();
+            }
+
+            var playlist = await service.GetPlaylistByOwnerAndIdAsync(userEmail, playlistId);
+            if (playlist == null)
+            {
+                return NotFound();
+            }
+
+            var deleted = await service.DeletePlaylistAsync(playlistId, userEmail);
+            if (!deleted)
+            {
+                return NotFound();
+            }
+            
+            return NoContent();
         }
     }
 }

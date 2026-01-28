@@ -10,6 +10,11 @@ namespace BSEtunes.Application.Services
             return repository.CreatePlaylistAsync(playlist);
         }
 
+        public Task<bool> DeletePlaylistAsync(int playlistId, string owner)
+        {
+            return repository.DeletePlaylistAsync(playlistId, owner);
+        }
+
         public Task<PagedResult<PlaylistEntryEntity>> GetPagedPlaylistEntriesByIdAsync(int playlistId, string owner, int pageNumber, int pageSize)
         {
             return repository.GetPagedPlaylistEntriesByIdAsync(playlistId, owner, pageNumber, pageSize);

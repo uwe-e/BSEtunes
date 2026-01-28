@@ -5,7 +5,9 @@ namespace BSEtunes.Infrastructure.Repositories
     public interface IPlaylistsRepository
     {
         Task<PlaylistSummaryEntity> CreatePlaylistAsync(PlaylistEntity playlist);
-        
+
+        Task<bool> DeletePlaylistAsync(int playlistId, string owner);
+
         Task<PagedResult<PlaylistSummaryEntity>> GetPagedPlaylistsByOwnerAsync(
             string owner,
             int pageNumber,
