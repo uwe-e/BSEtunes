@@ -5,6 +5,11 @@ namespace BSEtunes.Application.Services
 {
     public class PlaylistsService(IPlaylistsRepository repository) : IPlaylistsService
     {
+        public Task AppendPlaylistEntriesAsync(int playlistId, List<int> trackIds)
+        {
+            return repository.AppendPlaylistEntriesAsync(playlistId, trackIds);
+        }
+
         public Task<PlaylistSummaryEntity> CreatePlaylistAsync(PlaylistEntity playlist)
         {
             return repository.CreatePlaylistAsync(playlist);
@@ -13,6 +18,11 @@ namespace BSEtunes.Application.Services
         public Task<bool> DeletePlaylistAsync(int playlistId, string owner)
         {
             return repository.DeletePlaylistAsync(playlistId, owner);
+        }
+
+        public Task<bool> DeletePlaylistEntryAsync(int playlistId, int entryId, string owner)
+        {
+            return repository.DeletePlaylistEntryAsync(playlistId, entryId, owner);
         }
 
         public Task<PagedResult<PlaylistEntryEntity>> GetPagedPlaylistEntriesByIdAsync(int playlistId, string owner, int pageNumber, int pageSize)

@@ -10,7 +10,34 @@ namespace BSEtunes.Infrastructure.Repositories
     public class PlaylistsRepository(
         RecordsDbContext context,
         ILogger<PlaylistsRepository> logger, ITracksRepository tracksRepository) : IPlaylistsRepository
-    {
+    { 
+        public async Task AppendPlaylistEntriesAsync(int playlistId, List<int> trackIds)
+        {
+            var stopwatch = Stopwatch.StartNew();
+
+            // Get the current max sort order for the playlist
+            var maxSortOrder = await context.PlaylistEntries
+                .Where(pe => pe.PlaylistId == playlistId)
+                .MaxAsync(pe => (int?)pe.SortOrder) ?? -1;
+
+            // Create new playlist entries with incrementing sort order
+            var newEntries = trackIds.Select((trackId, index) => new PlaylistEntry
+            {
+                PlaylistId = playlistId,
+                TrackId = trackId,
+                SortOrder = maxSortOrder + index + 1,
+                Guid = Guid.NewGuid()
+            }).ToList();
+
+            // Add entries and save
+            context.PlaylistEntries.AddRange(newEntries);
+            await context.SaveChangesAsync();
+
+            stopwatch.Stop();
+            logger.LogDebug("AppendPlaylistEntriesAsync took {ElapsedMs}ms for playlistId {PlaylistId}, added {Count} entries",
+                stopwatch.ElapsedMilliseconds, playlistId, trackIds.Count);
+        }
+
         public async Task<PlaylistSummaryEntity> CreatePlaylistAsync(PlaylistEntity playlist)
         {
             var stopwatch = Stopwatch.StartNew();
@@ -41,6 +68,105 @@ namespace BSEtunes.Infrastructure.Repositories
                 EntryCount = 0,
                 CoverAlbumIds = []
             };
+        }
+
+        public async Task<bool> DeletePlaylistAsync(int playlistId, string owner)
+        {
+            var stopwatch = Stopwatch.StartNew();
+
+            await using var transaction = await context.Database.BeginTransactionAsync();
+
+            try
+            {
+                var playlist = await context.Playlists
+                    .FirstOrDefaultAsync(p => p.Id == playlistId && p.Owner == owner);
+
+                if (playlist == null)
+                {
+                    await transaction.RollbackAsync(); // Explicit rollback
+                    logger.LogDebug("DeletePlaylistAsync: Playlist {PlaylistId} not found", playlistId);
+                    return false;
+                }
+
+                await context.PlaylistEntries
+                    .Where(pe => pe.PlaylistId == playlistId)
+                    .ExecuteDeleteAsync(); // Bulk delete (EF Core 7+)
+
+                context.Playlists.Remove(playlist);
+                await context.SaveChangesAsync();
+
+                await transaction.CommitAsync();
+
+                stopwatch.Stop();
+                logger.LogDebug("DeletePlaylistAsync took {ElapsedMs}ms for playlistId {PlaylistId}",
+                    stopwatch.ElapsedMilliseconds, playlistId);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error deleting playlist {PlaylistId}", playlistId);
+                throw;
+            }
+        }
+
+        public async Task<bool> DeletePlaylistEntryAsync(int playlistId, int entryId, string owner)
+        {
+            var stopwatch = Stopwatch.StartNew();
+
+            await using var transaction = await context.Database.BeginTransactionAsync();
+
+            try
+            {
+                // Verify playlist ownership
+                var playlistExists = await context.Playlists
+                    .AnyAsync(p => p.Id == playlistId && p.Owner == owner);
+
+                if (!playlistExists)
+                {
+                    await transaction.RollbackAsync();
+                    logger.LogDebug("DeletePlaylistEntryAsync: Playlist {PlaylistId} not found or not owned by {Owner}",
+                        playlistId, owner);
+                    return false;
+                }
+
+                // Find and delete the entry
+                var entry = await context.PlaylistEntries
+                    .FirstOrDefaultAsync(pe => pe.Id == entryId && pe.PlaylistId == playlistId);
+
+                if (entry == null)
+                {
+                    await transaction.RollbackAsync();
+                    logger.LogDebug("DeletePlaylistEntryAsync: Entry {EntryId} not found in playlist {PlaylistId}",
+                        entryId, playlistId);
+                    return false;
+                }
+
+                var deletedSortOrder = entry.SortOrder;
+                context.PlaylistEntries.Remove(entry);
+                await context.SaveChangesAsync();
+
+                // Reorder remaining entries after the deleted one
+                await context.PlaylistEntries
+                    .Where(pe => pe.PlaylistId == playlistId && pe.SortOrder > deletedSortOrder)
+                    .ExecuteUpdateAsync(setters => setters.SetProperty(
+                        pe => pe.SortOrder,
+                        pe => pe.SortOrder - 1));
+
+                await transaction.CommitAsync();
+
+                stopwatch.Stop();
+                logger.LogDebug("DeletePlaylistEntryAsync took {ElapsedMs}ms for entryId {EntryId} in playlistId {PlaylistId}",
+                    stopwatch.ElapsedMilliseconds, entryId, playlistId);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error deleting playlist entry {EntryId} from playlist {PlaylistId}",
+                    entryId, playlistId);
+                throw;
+            }
         }
 
         public async Task<PagedResult<PlaylistSummaryEntity>> GetPagedPlaylistsByOwnerAsync(string owner, int pageNumber = 1, int pageSize = 10)
@@ -257,46 +383,7 @@ namespace BSEtunes.Infrastructure.Repositories
 
             return trackIds;
         }
-
-        public async Task<bool> DeletePlaylistAsync(int playlistId, string owner)
-        {
-            var stopwatch = Stopwatch.StartNew();
-
-            await using var transaction = await context.Database.BeginTransactionAsync();
-
-            try
-            {
-                var playlist = await context.Playlists
-                    .FirstOrDefaultAsync(p => p.Id == playlistId && p.Owner == owner);
-
-                if (playlist == null)
-                {
-                    await transaction.RollbackAsync(); // Explicit rollback
-                    logger.LogDebug("DeletePlaylistAsync: Playlist {PlaylistId} not found", playlistId);
-                    return false;
-                }
-
-                await context.PlaylistEntries
-                    .Where(pe => pe.PlaylistId == playlistId)
-                    .ExecuteDeleteAsync(); // Bulk delete (EF Core 7+)
-
-                context.Playlists.Remove(playlist);
-                await context.SaveChangesAsync();
-
-                await transaction.CommitAsync();
-
-                stopwatch.Stop();
-                logger.LogDebug("DeletePlaylistAsync took {ElapsedMs}ms for playlistId {PlaylistId}",
-                    stopwatch.ElapsedMilliseconds, playlistId);
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Error deleting playlist {PlaylistId}", playlistId);
-                throw;
-            }
-        }
+        
     }
 }
 

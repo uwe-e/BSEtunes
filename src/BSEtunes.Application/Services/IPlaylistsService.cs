@@ -4,9 +4,13 @@ namespace BSEtunes.Application.Services
 {
     public interface IPlaylistsService
     {
+        Task AppendPlaylistEntriesAsync(int playlistId, List<int> trackIds);
+
         Task<PlaylistSummaryEntity> CreatePlaylistAsync(PlaylistEntity playlist);
 
         Task<bool> DeletePlaylistAsync(int playlistId, string owner);
+
+        Task<bool> DeletePlaylistEntryAsync(int playlistId, int entryId, string owner);
 
         Task<PagedResult<PlaylistSummaryEntity>> GetPagedPlaylistsByOwnerAsync(
             string owner,

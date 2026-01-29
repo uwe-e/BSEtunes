@@ -26,7 +26,6 @@ namespace BSEtunes.Api.Controllers
     [Route("api/playlists")]
     public class PlaylistsController(IPlaylistsService service, IMapper mapper) : ControllerBase   
     {
-
         /// <summary>
         /// Retrieves a paged list of playlists owned by the specified user.
         /// </summary>
@@ -168,7 +167,6 @@ namespace BSEtunes.Api.Controllers
 
             return Ok(dto);
         }
-
         /// <summary>
         /// Retrieves all track identifiers for the specified playlist.
         /// </summary>
@@ -266,5 +264,78 @@ namespace BSEtunes.Api.Controllers
             
             return NoContent();
         }
+        /// <summary>
+        /// Appends one or more track entries to an existing playlist.
+        /// </summary>
+        /// <remarks>Only authenticated users with the 'tunes-users' role can access this endpoint.
+        /// The user must be the owner of the playlist to append entries.</remarks>
+        /// <param name="playlistId">The unique identifier of the playlist to append entries to.</param>
+        /// <param name="appendEntriesDto">The data transfer object containing track IDs to append.</param>
+        /// <returns>Returns NoContent (204) if entries were successfully appended. Returns
+        /// Unauthorized if the user claim is missing, NotFound if the playlist does not exist or does not belong to the user,
+        /// or BadRequest if the model validation fails.</returns>
+        [HttpPost("{playlistId:int}/entries")]
+        [Authorize(Roles = "tunes-users")]
+        public async Task<ActionResult> AppendPlaylistEntriesAsync(
+            int playlistId,
+            [FromBody] AppendPlaylistEntriesDto appendEntriesDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var userEmail = User.GetUserEmail();
+
+            if (string.IsNullOrEmpty(userEmail))
+            {
+                return Unauthorized();
+            }
+
+            var playlist = await service.GetPlaylistByOwnerAndIdAsync(userEmail, playlistId);
+            if (playlist == null)
+            {
+                return NotFound();
+            }
+
+            await service.AppendPlaylistEntriesAsync(playlistId, appendEntriesDto.TrackIds);
+
+            return NoContent();
+        }
+        /// <summary>
+        /// Deletes a specific entry from a playlist.
+        /// </summary>
+        /// <remarks>Only authenticated users with the 'tunes-users' role can access this endpoint.
+        /// The user must be the owner of the playlist to delete entries from it.</remarks>
+        /// <param name="playlistId">The unique identifier of the playlist.</param>
+        /// <param name="entryId">The unique identifier of the playlist entry to delete.</param>
+        /// <returns>Returns NoContent (204) if the entry was successfully deleted. Returns
+        /// Unauthorized if the user claim is missing, NotFound if the playlist or entry does not exist or does not belong to the user.</returns>
+        [HttpDelete("{playlistId:int}/entries/{entryId:int}")]
+        [Authorize(Roles = "tunes-users")]
+        public async Task<ActionResult> DeletePlaylistEntryAsync(int playlistId, int entryId)
+        {
+            var userEmail = User.GetUserEmail();
+
+            if (string.IsNullOrEmpty(userEmail))
+            {
+                return Unauthorized();
+            }
+
+            var playlist = await service.GetPlaylistByOwnerAndIdAsync(userEmail, playlistId);
+            if (playlist == null)
+            {
+                return NotFound();
+            }
+
+            var deleted = await service.DeletePlaylistEntryAsync(playlistId, entryId, userEmail);
+            if (!deleted)
+            {
+                return NotFound();
+            }
+
+            return NoContent();
+        }
     }
+
 }

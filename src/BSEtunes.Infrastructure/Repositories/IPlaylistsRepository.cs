@@ -4,9 +4,13 @@ namespace BSEtunes.Infrastructure.Repositories
 {
     public interface IPlaylistsRepository
     {
+        Task AppendPlaylistEntriesAsync(int playlistId, List<int> trackIds);
+
         Task<PlaylistSummaryEntity> CreatePlaylistAsync(PlaylistEntity playlist);
 
         Task<bool> DeletePlaylistAsync(int playlistId, string owner);
+
+        Task<bool> DeletePlaylistEntryAsync(int playlistId, int entryId, string owner);
 
         Task<PagedResult<PlaylistSummaryEntity>> GetPagedPlaylistsByOwnerAsync(
             string owner,
@@ -21,5 +25,6 @@ namespace BSEtunes.Infrastructure.Repositories
             int pageSize);
 
         Task<List<int>> GetTrackIdsByPlaylistIdAsync(int playlistId, bool randomize = false);
+        
     }
 }
