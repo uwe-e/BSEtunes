@@ -72,6 +72,8 @@ try
     builder.Services.AddScoped<ITracksRepository, TracksRepository>();
     builder.Services.AddScoped<IPlaylistsService, PlaylistsService>();
     builder.Services.AddScoped<IPlaylistsRepository, PlaylistsRepository>();
+    builder.Services.AddScoped<ISearchService, SearchService>();
+    builder.Services.AddScoped<ISearchRepository, SearchRepository>();
 
     builder.Services.AddDbContext<RecordsDbContext>(options =>
     {
