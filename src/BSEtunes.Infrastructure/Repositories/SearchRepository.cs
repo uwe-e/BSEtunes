@@ -8,14 +8,9 @@ using System.Data;
 
 namespace BSEtunes.Infrastructure.Repositories
 {
-    public class SearchRepository : ISearchRepository
+    public class SearchRepository(RecordsDbContext context) : ISearchRepository
     {
-        private readonly RecordsDbContext _context;
-
-        public SearchRepository(RecordsDbContext context)
-        {
-            _context = context;
-        }
+        private readonly RecordsDbContext _context = context;
 
         public async Task<PagedResult<AlbumEntity>> GetAlbumSearchAsync(
             string searchPhrase, int pageSize, int pageIndex)
@@ -51,7 +46,7 @@ namespace BSEtunes.Infrastructure.Repositories
                 ? Convert.ToInt32(totalCountParam.Value) 
                 : 0;
 
-            var domainAlbums = AlbumMapper.ToDomain(albums) ?? Enumerable.Empty<AlbumEntity>();
+            var domainAlbums = AlbumMapper.ToDomain(albums) ?? [];
 
             return new PagedResult<AlbumEntity>
             {
