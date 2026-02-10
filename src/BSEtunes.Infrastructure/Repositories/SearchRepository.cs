@@ -153,35 +153,26 @@ namespace BSEtunes.Infrastructure.Repositories
             };
         }
 
-        private Album MapAlbumFromReader(System.Data.Common.DbDataReader reader)
+        private static Album MapAlbumFromReader(System.Data.Common.DbDataReader reader)
         {
+            var albumIdOrdinal = reader.GetOrdinal("AlbumId");
+            var artistIdOrdinal = reader.GetOrdinal("ArtistId");
+            var artistNameOrdinal = reader.GetOrdinal("ArtistName");
+            var albumNameOrdinal = reader.GetOrdinal("AlbumName");
+            var guidOrdinal = reader.GetOrdinal("Guid");
+
             return new Album
             {
-                Album_Id = reader.GetInt32(reader.GetOrdinal("AlbumId")),
-                Artist_Id = reader.GetInt32(reader.GetOrdinal("ArtistId")),
-                Artist_Name = reader.GetString(reader.GetOrdinal("ArtistName")),
-                Artist_SortName = reader.GetString(reader.GetOrdinal("ArtistName")), // Using ArtistName as SortName since not returned
-                Album_Title = reader.GetString(reader.GetOrdinal("AlbumName")),
-                Album_AlbumId = reader.GetString(reader.GetOrdinal("Guid")),
-                Album_Year = null, // Not returned by stored procedure
-                Genre_Id = null, // Not returned by stored procedure
-                Genre_Name = null // Not returned by stored procedure
+                Album_Id = reader.GetInt32(albumIdOrdinal),
+                Artist_Id = reader.GetInt32(artistIdOrdinal),
+                Artist_Name = reader.GetString(artistNameOrdinal),
+                Artist_SortName = reader.GetString(artistNameOrdinal),
+                Album_Title = reader.GetString(albumNameOrdinal),
+                Album_AlbumId = reader.GetString(guidOrdinal),
+                Album_Year = null,
+                Genre_Id = null,
+                Genre_Name = null
             };
         }
-
-        //private TrackSearchResult MapTrackFromReader(System.Data.Common.DbDataReader reader)
-        //{
-        //    return new TrackSearchResult
-        //    {
-        //        AlbumId = reader.GetInt32(reader.GetOrdinal("AlbumId")),
-        //        ArtistId = reader.GetInt32(reader.GetOrdinal("ArtistId")),
-        //        ArtistName = reader.GetString(reader.GetOrdinal("ArtistName")),
-        //        AlbumName = reader.GetString(reader.GetOrdinal("AlbumName")),
-        //        AlbumGuid = reader.GetString(reader.GetOrdinal("Guid")),
-        //        TrackId = reader.GetInt32(reader.GetOrdinal("TrackId")),
-        //        Track = reader.GetString(reader.GetOrdinal("Track")),
-        //        Duration = reader.GetTimeSpan(reader.GetOrdinal("Duration"))
-        //    };
-        //}
     }
 }

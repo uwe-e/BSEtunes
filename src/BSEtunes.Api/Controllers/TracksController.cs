@@ -15,6 +15,7 @@ namespace BSEtunes.Api.Controllers
     /// Initializes a new instance of the TracksController class with the specified track service.
     /// </remarks>
     /// <param name="trackService">The service used to manage and retrieve track data. Cannot be null.</param>
+    /// <param name="mapper">The mapper used to map domain models to DTOs. Cannot be null.</param>
     [ApiController]
     [Route("api/tracks")]
     public class TracksController(ITrackService trackService, IMapper mapper) : Controller
