@@ -2,9 +2,12 @@ using BSEtunes.Application.Mapping;
 using BSEtunes.Application.Services;
 using BSEtunes.Contracts.Enums;
 using BSEtunes.Identity.Extensions;
+using BSEtunes.Infrastructure.Configuration;
 using BSEtunes.Infrastructure.Data;
 using BSEtunes.Infrastructure.Repositories;
+using BSEtunes.Infrastructure.Security;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using MySqlConnector;
@@ -63,6 +66,16 @@ try
     //    // System.Diagnostics.Debugger.Launch();
     //}
     //#endif
+    builder.Services.Configure<FileShareOptions>(
+    builder.Configuration.GetSection("FileShare"));
+
+#if WINDOWS
+    builder.Services.AddScoped<ImpersonatedFileAccessor>(sp =>
+    {
+        var options = sp.GetRequiredService<IOptions<FileShareOptions>>().Value;
+        return new ImpersonatedFileAccessor(options.Username, options.Password, options.Domain);
+    });
+#endif
 
     builder.Services.AddScoped<ISystemService, SystemService>();
     builder.Services.AddScoped<IDatabaseHealthRepository, DatabaseHealthRepository>();
@@ -74,6 +87,8 @@ try
     builder.Services.AddScoped<IPlaylistsRepository, PlaylistsRepository>();
     builder.Services.AddScoped<ISearchService, SearchService>();
     builder.Services.AddScoped<ISearchRepository, SearchRepository>();
+    builder.Services.AddScoped<IHistoryRepository, HistoryRepository>();
+    builder.Services.AddScoped<IHistoryService, HistoryService>();
 
     builder.Services.AddDbContext<RecordsDbContext>(options =>
     {

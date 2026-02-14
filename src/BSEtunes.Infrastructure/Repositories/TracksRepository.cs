@@ -24,6 +24,19 @@ namespace BSEtunes.Infrastructure.Repositories
                 .Where(t => t.FilePath != null)
                 .CountAsync();
         }
+
+        public async Task<TrackEntity?> GetTrackByGuidAsync(Guid guid)
+        {
+            var result = await _context.Tracks
+                .Where(t => t.Guid == guid.ToString())
+                .Join(_context.Albums, t => t.AlbumId, a => a.Album_Id, (t, a) => new { Track = t, Album = a })
+                .Join(_context.Artists, ta => ta.Album.Artist_Id, ar => ar.Id, (ta, ar) => new { ta.Track, ta.Album, Artist = ar })
+                .Select(x => new { x.Track, x.Album, x.Artist })
+                .FirstOrDefaultAsync();
+
+            return result != null ? TrackMapper.ToDomain(result.Track, result.Album, result.Artist) : null;
+        }
+
         /// <summary>
         /// Asynchronously retrieves a track by its unique identifier, including related album and artist information.
         /// </summary>

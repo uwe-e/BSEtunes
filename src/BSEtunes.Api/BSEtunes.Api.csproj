@@ -9,6 +9,16 @@
     <NoWarn>$(NoWarn);1591</NoWarn>
   </PropertyGroup>
 
+  <!-- Define a conditional compilation symbol for Windows platform
+    
+    this prevents that error
+    "Unable to resolve service for type 'BSEtunes.Infrastructure.Security.ImpersonatedFileAccessor"
+    
+      -->
+  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+  <DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
+</PropertyGroup>
+    
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.10">
       <PrivateAssets>all</PrivateAssets>

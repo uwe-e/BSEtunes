@@ -15,6 +15,7 @@ namespace BSEtunes.Infrastructure.Mapping
                 Name = track.Name ?? string.Empty,
                 Duration = track.Duration?.TimeOfDay ?? TimeSpan.Zero,
                 Guid = Guid.TryParse(track.Guid, out var guid) ? guid : Guid.Empty,
+                FilePath = track.FilePath ?? string.Empty,
                 Extension = string.IsNullOrEmpty(track.FilePath) ? string.Empty : System.IO.Path.GetExtension(track.FilePath),
                 Album = new AlbumEntity
                 {

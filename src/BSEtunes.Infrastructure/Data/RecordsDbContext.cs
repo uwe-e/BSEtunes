@@ -22,7 +22,7 @@ public partial class RecordsDbContext : DbContext
 
     public virtual DbSet<genre1> genres1 { get; set; }
 
-    public virtual DbSet<history> histories { get; set; }
+    public virtual DbSet<History> Histories { get; set; }
 
     public virtual DbSet<Artist> Artists { get; set; }
 
@@ -121,27 +121,27 @@ public partial class RecordsDbContext : DbContext
                 .UseCollation("utf8mb4_unicode_ci");
         });
 
-        modelBuilder.Entity<history>(entity =>
+        modelBuilder.Entity<History>(entity =>
         {
-            entity.HasKey(e => e.PlayID).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
             entity
                 .ToTable("history")
                 .UseCollation("utf8mb4_unicode_ci");
 
-            entity.Property(e => e.Benutzer)
+            entity.Property(e => e.Owner)
                 .HasMaxLength(50)
                 .HasDefaultValueSql("''");
-            entity.Property(e => e.Interpret)
+            entity.Property(e => e.Artist)
                 .HasMaxLength(50)
                 .HasDefaultValueSql("''");
-            entity.Property(e => e.Lied)
+            entity.Property(e => e.TrackName)
                 .HasMaxLength(60)
                 .HasDefaultValueSql("''");
-            entity.Property(e => e.Titel)
+            entity.Property(e => e.Title)
                 .HasMaxLength(60)
                 .HasDefaultValueSql("''");
-            entity.Property(e => e.Zeit)
+            entity.Property(e => e.PlayedAt)
                 .HasDefaultValueSql("'0000-00-00 00:00:00'")
                 .HasColumnType("datetime");
         });

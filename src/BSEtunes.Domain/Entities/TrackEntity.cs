@@ -7,6 +7,7 @@
         public string Name { get; set; } = null!;
         public TimeSpan Duration { get; set; }
         public Guid Guid { get; set; }
+        public string FilePath { get; set; } = null!;
         public string Extension { get; set; } = null!;
         public AlbumEntity? Album { get; set; }
     }

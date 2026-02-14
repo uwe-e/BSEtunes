@@ -17,6 +17,11 @@ namespace BSEtunes.Application.Services
             return await _tracksRepository.GetAvailableTrackCountAsync();
         }
 
+        public async Task<TrackEntity?> GetTrackByGuidAsync(Guid guid)
+        {
+            return await _tracksRepository.GetTrackByGuidAsync(guid);
+        }
+
         public async Task<TrackEntity?> GetTrackByIdAsync(int id)
         {
             return await _tracksRepository.GetTrackByIdAsync(id);
