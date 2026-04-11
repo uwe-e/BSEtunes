@@ -182,5 +182,59 @@ namespace BSEtunes.Api.Controllers
 
             return Ok(dto);
         }
+        /// <summary>
+        /// Retrieves a pageable list of tracks for a specific album.
+        /// </summary>
+        /// <param name="albumId">The unique identifier of the album.</param>
+        /// <param name="pageNumber">The page number to retrieve (1-based). Default is 1.</param>
+        /// <param name="pageSize">Number of tracks per page. Default is 20.</param>
+        /// <returns>A paginated collection of tracks with pagination metadata.</returns>
+        [HttpGet]
+        [Authorize(Roles = "tunes-users")]
+        [Route("{albumId:int}/tracks")]
+        public async Task<ActionResult<PagedResultDto<TrackDto>>> GetAlbumTracks(
+            int albumId,
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 20)
+        {
+            // Validate pagination parameters
+            if (pageNumber < 1)
+            {
+                return BadRequest("Page number must be greater than 0.");
+            }
+
+            if (pageSize < 1 || pageSize > 100)
+            {
+                return BadRequest("Page size must be between 1 and 100.");
+            }
+
+            // Get paged tracks for the album
+            var pagedResult = await _service.GetPagedTracksByAlbumIdAsync(albumId, pageNumber, pageSize);
+            
+            if (pagedResult == null)
+            {
+                return NotFound();
+            }
+
+            // Map to DTO
+            var dto = new PagedResultDto<TrackDto>
+            {
+                Items = _mapper.Map<IEnumerable<TrackDto>>(pagedResult.Items),
+                TotalCount = pagedResult.TotalCount,
+                PageNumber = pagedResult.PageNumber,
+                PageSize = pagedResult.PageSize,
+                TotalPages = pagedResult.TotalPages,
+                HasPreviousPage = pagedResult.HasPreviousPage,
+                HasNextPage = pagedResult.HasNextPage
+            };
+
+            // Add pagination headers
+            Response.Headers.Append("X-Total-Count", pagedResult.TotalCount.ToString());
+            Response.Headers.Append("X-Page-Number", pagedResult.PageNumber.ToString());
+            Response.Headers.Append("X-Page-Size", pagedResult.PageSize.ToString());
+            Response.Headers.Append("X-Total-Pages", pagedResult.TotalPages.ToString());
+
+            return Ok(dto);
+        }
     }
 }

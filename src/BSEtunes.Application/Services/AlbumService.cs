@@ -35,5 +35,13 @@ namespace BSEtunes.Application.Services
         {
             return await _repository.GetPagedAlbumsAsync(filterOptions, sortBy, pageNumber, pageSize);
         }
+
+        public async Task<PagedResult<TrackEntity>> GetPagedTracksByAlbumIdAsync(
+            int albumId,
+            int pageNumber = 1,
+            int pageSize = 20)
+        {
+            return await _repository.GetPagedTracksByAlbumIdAsync(albumId, pageNumber, pageSize);
+        }
     }
 }

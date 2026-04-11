@@ -14,5 +14,9 @@ namespace BSEtunes.Application.Services
             AlbumSortOption sortBy = AlbumSortOption.Random,
             int pageNumber = 1,
             int pageSize = 10);
+        Task<PagedResult<TrackEntity>> GetPagedTracksByAlbumIdAsync(
+            int albumId,
+            int pageNumber = 1,
+            int pageSize = 20);
     }
 }

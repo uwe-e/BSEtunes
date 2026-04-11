@@ -145,5 +145,61 @@ namespace BSEtunes.Infrastructure.Repositories
                 PageSize = pageSize
             };
         }
+
+        public async Task<PagedResult<TrackEntity>> GetPagedTracksByAlbumIdAsync(
+            int albumId,
+            int pageNumber = 1,
+            int pageSize = 20)
+        {
+            // First, verify the album exists
+            var albumExists = await _context.Albums
+                .AnyAsync(a => a.Album_Id == albumId);
+
+            if (!albumExists)
+            {
+                return new PagedResult<TrackEntity>
+                {
+                    Items = Enumerable.Empty<TrackEntity>(),
+                    TotalCount = 0,
+                    PageNumber = pageNumber,
+                    PageSize = pageSize
+                };
+            }
+
+            // Get total count of tracks for this album
+            var totalCount = await _context.Tracks
+                .Where(t => t.AlbumId == albumId)
+                .CountAsync();
+
+            // Get paginated tracks
+            var tracks = await _context.Tracks
+                .Where(t => t.AlbumId == albumId)
+                .OrderBy(t => t.TrackNumber)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            // Map to domain entities
+            var trackEntities = tracks.Select(t => new TrackEntity
+            {
+                Id = t.Id,
+                TrackNumber = t.TrackNumber ?? 0,
+                Name = t.Name ?? string.Empty,
+                Duration = t.Duration.HasValue
+                    ? TimeSpan.FromSeconds((t.Duration.Value - DateTime.MinValue).TotalSeconds)
+                    : TimeSpan.Zero,
+                Guid = Guid.Parse(t.Guid),
+                FilePath = t.FilePath ?? string.Empty,
+                Extension = Path.GetExtension(t.FilePath ?? string.Empty)
+            });
+
+            return new PagedResult<TrackEntity>
+            {
+                Items = trackEntities,
+                TotalCount = totalCount,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
+        }
     }
 }
