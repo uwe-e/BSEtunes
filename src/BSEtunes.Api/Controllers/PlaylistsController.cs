@@ -336,6 +336,29 @@ namespace BSEtunes.Api.Controllers
 
             return NoContent();
         }
+        /// <summary>
+        /// Retrieves all playlists owned by the authenticated user.
+        /// </summary>
+        /// <remarks>Only authenticated users with the 'tunes-users' role can access this endpoint.
+        /// Returns a lightweight collection of playlists without entries or cover album details.</remarks>
+        /// <returns>Returns a collection of playlist summaries owned by the authenticated user. Returns
+        /// Unauthorized if the user claim is missing.</returns>
+        [HttpGet("all")]
+        [Authorize(Roles = "tunes-users")]
+        public async Task<ActionResult<IReadOnlyList<PlaylistSummaryDto>>> GetAllPlaylistsByOwnerAsync()
+        {
+            var userEmail = User.GetUserEmail();
+            
+            if (string.IsNullOrEmpty(userEmail))
+            {
+                return Unauthorized();
+            }
+
+            var playlists = await service.GetPlaylistsByOwnerAsync(userEmail);
+            var dto = mapper.Map<IReadOnlyList<PlaylistSummaryDto>>(playlists);
+            
+            return Ok(dto);
+        }
     }
 
 }

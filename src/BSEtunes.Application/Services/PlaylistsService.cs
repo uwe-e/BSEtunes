@@ -35,6 +35,11 @@ namespace BSEtunes.Application.Services
             return await repository.GetPagedPlaylistsByOwnerAsync(owner, pageNumber, pageSize);
         }
 
+        public async Task<IReadOnlyList<PlaylistEntity>> GetPlaylistsByOwnerAsync(string owner)
+        {
+            return await repository.GetPlaylistsByOwnerAsync(owner);
+        }
+
         public async Task<PlaylistSummaryEntity?> GetPlaylistByOwnerAndIdAsync(string owner, int playlistId)
         {
             return await repository.GetPlaylistByOwnerAndIdAsync(owner, playlistId);

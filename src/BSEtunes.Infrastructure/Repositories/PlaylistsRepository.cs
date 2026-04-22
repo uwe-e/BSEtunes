@@ -355,7 +355,29 @@ namespace BSEtunes.Infrastructure.Repositories
                 PageSize = pageSize
             };
         }
+        
+        public async Task<IReadOnlyList<PlaylistEntity>> GetPlaylistsByOwnerAsync(string owner)
+        {
+            var stopwatch = Stopwatch.StartNew();
 
+            var playlists = await context.Playlists
+                .Where(p => p.Owner == owner)
+                .OrderBy(p => p.Name)
+                .Select(p => new PlaylistEntity
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    Owner = p.Owner,
+                    Guid = Guid.Parse(p.Guid)
+                })
+                .ToListAsync(); // Returns List<T> which implements IReadOnlyList<T>
+
+            stopwatch.Stop();
+            logger.LogDebug("GetPlaylistsByOwnerAsync took {ElapsedMs}ms for owner {Owner}, returned {Count} playlists",
+                stopwatch.ElapsedMilliseconds, owner, playlists.Count);
+
+            return playlists;
+        }
         /// <summary>
         /// Retrieves all track IDs for a specific playlist ordered by sort order.
         /// </summary>
@@ -383,6 +405,7 @@ namespace BSEtunes.Infrastructure.Repositories
 
             return trackIds;
         }
+        
         
     }
 }

@@ -25,6 +25,8 @@ namespace BSEtunes.Application.Services
             int pageNumber,
             int pageSize);
 
+        Task<IReadOnlyList<PlaylistEntity>> GetPlaylistsByOwnerAsync(string owner);
+
         Task<List<int>> GetTrackIdsByPlaylistIdAsync(int playlistId, bool randomize = false);
     }
 }

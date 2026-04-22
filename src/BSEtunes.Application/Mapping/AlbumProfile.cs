@@ -9,12 +9,12 @@ namespace BSEtunes.Application.Mapping
     {
         public AlbumProfile()
         {
-            CreateMap<TrackEntity, TrackDto>()
-                .ForMember(dest => dest.Duration, opt => opt.MapFrom(src => src.Duration))
-                .ForMember(dest => dest.Guid, opt => opt.MapFrom(src => src.Guid.ToString()))
-                .ForMember(dest => dest.Extension, opt => opt.MapFrom(src => src.Extension))
-                .ForMember(dest => dest.TrackNumber, opt => opt.MapFrom(src => src.TrackNumber))
-                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name));
+            //CreateMap<TrackEntity, TrackDto>()
+            //    .ForMember(dest => dest.Duration, opt => opt.MapFrom(src => src.Duration))
+            //    .ForMember(dest => dest.Guid, opt => opt.MapFrom(src => src.Guid.ToString()))
+            //    .ForMember(dest => dest.Extension, opt => opt.MapFrom(src => src.Extension))
+            //    .ForMember(dest => dest.TrackNumber, opt => opt.MapFrom(src => src.TrackNumber))
+            //    .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name));
             
             CreateMap<AlbumEntity, AlbumDto>()
                 .ForMember(dest => dest.Artist, opt => opt.MapFrom(src => 
@@ -49,18 +49,18 @@ namespace BSEtunes.Application.Mapping
             //    .ForMember(dest => dest.Extension, opt => opt.MapFrom(src => System.IO.Path.GetExtension(src.Liedpfad ?? string.Empty).TrimStart('.')))
             //    .ForMember(dest => dest.TrackNumber, opt => opt.MapFrom(src => src.TrackNumber ?? 0))
             //    .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name ?? string.Empty));
-            CreateMap<PlaylistSummaryEntity, PlaylistDto>()
-                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
-                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
-                .ForMember(dest => dest.Owner, opt => opt.MapFrom(src => src.Owner))
-                .ForMember(dest => dest.Guid, opt => opt.MapFrom(src => src.Guid))
-                .ForMember(dest => dest.EntryCount, opt => opt.MapFrom(src => src.EntryCount));
+            //CreateMap<PlaylistSummaryEntity, PlaylistDto>()
+            //    .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+            //    .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
+            //    .ForMember(dest => dest.Owner, opt => opt.MapFrom(src => src.Owner))
+            //    .ForMember(dest => dest.Guid, opt => opt.MapFrom(src => src.Guid))
+            //    .ForMember(dest => dest.EntryCount, opt => opt.MapFrom(src => src.EntryCount));
 
-            CreateMap<PlaylistEntryEntity, PlaylistEntryDto>()
-                .ForMember(dest => dest.Track, opt => opt.MapFrom(src => src.Track));
+            //CreateMap<PlaylistEntryEntity, PlaylistEntryDto>()
+            //    .ForMember(dest => dest.Track, opt => opt.MapFrom(src => src.Track));
 
-            CreateMap<CreatePlaylistDto, PlaylistEntity>()
-                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name));
+            //CreateMap<CreatePlaylistDto, PlaylistEntity>()
+            //    .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name));
         }
     }
 }
