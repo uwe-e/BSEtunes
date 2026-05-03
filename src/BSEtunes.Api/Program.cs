@@ -89,6 +89,8 @@ try
     builder.Services.AddScoped<ISearchRepository, SearchRepository>();
     builder.Services.AddScoped<IHistoryRepository, HistoryRepository>();
     builder.Services.AddScoped<IHistoryService, HistoryService>();
+    builder.Services.AddScoped<IGenreRepository, GenreRepository>();
+    builder.Services.AddScoped<IGenreService, GenreService>();
 
     builder.Services.AddDbContext<RecordsDbContext>(options =>
     {

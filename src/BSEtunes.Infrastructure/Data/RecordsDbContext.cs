@@ -18,7 +18,7 @@ public partial class RecordsDbContext : DbContext
 
     public virtual DbSet<filtersetting> filtersettings { get; set; }
 
-    public virtual DbSet<genre> genres { get; set; }
+    public virtual DbSet<Genre> Genres { get; set; }
 
     public virtual DbSet<genre1> genres1 { get; set; }
 
@@ -88,22 +88,22 @@ public partial class RecordsDbContext : DbContext
             entity.Property(e => e.value).HasMaxLength(255);
         });
 
-        modelBuilder.Entity<genre>(entity =>
+        modelBuilder.Entity<Genre>(entity =>
         {
-            entity.HasKey(e => e.genreid).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
             entity
                 .ToTable("genre")
                 .UseCollation("utf8mb4_unicode_ci");
 
-            entity.Property(e => e.genre1)
+            entity.Property(e => e.Name)
                 .HasMaxLength(100)
                 .HasDefaultValueSql("''")
                 .HasColumnName("genre");
-            entity.Property(e => e.guid)
+            entity.Property(e => e.Guid)
                 .HasMaxLength(36)
                 .HasDefaultValueSql("''");
-            entity.Property(e => e.timestamp)
+            entity.Property(e => e.Timestamp)
                 .ValueGeneratedOnAddOrUpdate()
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("timestamp");

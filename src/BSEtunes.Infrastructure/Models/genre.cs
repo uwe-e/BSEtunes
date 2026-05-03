@@ -1,15 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BSEtunes.Infrastructure.Models;
 
-public partial class genre
+[Table("genre")]
+public partial class Genre
 {
-    public int genreid { get; set; }
+    [Column("genreid")]
+    public int Id { get; set; }
 
-    public string genre1 { get; set; } = null!;
+    [Column("genre1")]
+    public string Name { get; set; } = null!;
 
-    public string guid { get; set; } = null!;
+    [Column("guid")]
+    public string Guid { get; set; } = null!;
 
-    public DateTime timestamp { get; set; }
+    [Column("timestamp")]
+    public DateTime Timestamp { get; set; }
 }
