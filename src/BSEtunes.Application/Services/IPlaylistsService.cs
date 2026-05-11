@@ -10,7 +10,7 @@ namespace BSEtunes.Application.Services
 
         Task<bool> DeletePlaylistAsync(int playlistId, string owner);
 
-        Task<bool> DeletePlaylistEntryAsync(int playlistId, int entryId, string owner);
+        Task<int> DeletePlaylistEntriesAsync(int playlistId, List<int> entryIds, string owner);
 
         Task<PagedResult<PlaylistSummaryEntity>> GetPagedPlaylistsByOwnerAsync(
             string owner,

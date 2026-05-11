@@ -140,9 +140,9 @@ namespace BSEtunes.Api.Controllers
                 return BadRequest("Page number must be greater than 0.");
             }
 
-            if (pageSize < 1 || pageSize > 50)
+            if (pageSize < 1 || pageSize > 1000)
             {
-                return BadRequest("Page size must be between 1 and 50.");
+                return BadRequest("Page size must be between 1 and 1000.");
             }
 
             var pagedResult = await service.GetPagedPlaylistEntriesByIdAsync(playlistId, userEmail, pageNumber, pageSize);
@@ -328,13 +328,58 @@ namespace BSEtunes.Api.Controllers
                 return NotFound();
             }
 
-            var deleted = await service.DeletePlaylistEntryAsync(playlistId, entryId, userEmail);
-            if (!deleted)
+            var deletedCount = await service.DeletePlaylistEntriesAsync(playlistId, [entryId], userEmail);
+            if (deletedCount == 0)
             {
                 return NotFound();
             }
 
             return NoContent();
+        }
+
+        /// <summary>
+        /// Deletes multiple entries from a playlist.
+        /// </summary>
+        /// <remarks>Only authenticated users with the 'tunes-users' role can access this endpoint.
+        /// The user must be the owner of the playlist to delete entries from it.
+        /// Returns the number of successfully deleted entries.</remarks>
+        /// <param name="playlistId">The unique identifier of the playlist.</param>
+        /// <param name="deleteEntriesDto">The data transfer object containing entry IDs to delete.</param>
+        /// <returns>Returns Ok with the count of deleted entries if successful. Returns
+        /// Unauthorized if the user claim is missing, NotFound if the playlist does not exist or does not belong to the user,
+        /// or BadRequest if the model validation fails or no entries were deleted.</returns>
+        [HttpDelete("{playlistId:int}/entries")]
+        [Authorize(Roles = "tunes-users")]
+        public async Task<ActionResult<int>> DeletePlaylistEntriesAsync(
+            int playlistId,
+            [FromBody] DeletePlaylistEntriesDto deleteEntriesDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var userEmail = User.GetUserEmail();
+
+            if (string.IsNullOrEmpty(userEmail))
+            {
+                return Unauthorized();
+            }
+
+            var playlist = await service.GetPlaylistByOwnerAndIdAsync(userEmail, playlistId);
+            if (playlist == null)
+            {
+                return NotFound();
+            }
+
+            var deletedCount = await service.DeletePlaylistEntriesAsync(playlistId, deleteEntriesDto.EntryIds, userEmail);
+
+            if (deletedCount == 0)
+            {
+                return NotFound("No entries were found or deleted.");
+            }
+
+            return Ok(deletedCount);
         }
         /// <summary>
         /// Retrieves all playlists owned by the authenticated user.

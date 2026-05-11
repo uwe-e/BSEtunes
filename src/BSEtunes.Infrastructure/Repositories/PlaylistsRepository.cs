@@ -110,7 +110,7 @@ namespace BSEtunes.Infrastructure.Repositories
             }
         }
 
-        public async Task<bool> DeletePlaylistEntryAsync(int playlistId, int entryId, string owner)
+        public async Task<int> DeletePlaylistEntriesAsync(int playlistId, List<int> entryIds, string owner)
         {
             var stopwatch = Stopwatch.StartNew();
 
@@ -125,46 +125,52 @@ namespace BSEtunes.Infrastructure.Repositories
                 if (!playlistExists)
                 {
                     await transaction.RollbackAsync();
-                    logger.LogDebug("DeletePlaylistEntryAsync: Playlist {PlaylistId} not found or not owned by {Owner}",
+                    logger.LogDebug("DeletePlaylistEntriesAsync: Playlist {PlaylistId} not found or not owned by {Owner}",
                         playlistId, owner);
-                    return false;
+                    return 0;
                 }
 
-                // Find and delete the entry
-                var entry = await context.PlaylistEntries
-                    .FirstOrDefaultAsync(pe => pe.Id == entryId && pe.PlaylistId == playlistId);
+                // Get entries to delete with their sort orders
+                var entriesToDelete = await context.PlaylistEntries
+                    .Where(pe => pe.PlaylistId == playlistId && entryIds.Contains(pe.Id))
+                    .Select(pe => new { pe.Id, pe.SortOrder })
+                    .ToListAsync();
 
-                if (entry == null)
+                if (entriesToDelete.Count == 0)
                 {
                     await transaction.RollbackAsync();
-                    logger.LogDebug("DeletePlaylistEntryAsync: Entry {EntryId} not found in playlist {PlaylistId}",
-                        entryId, playlistId);
-                    return false;
+                    logger.LogDebug("DeletePlaylistEntriesAsync: No entries found to delete in playlist {PlaylistId}",
+                        playlistId);
+                    return 0;
                 }
 
-                var deletedSortOrder = entry.SortOrder;
-                context.PlaylistEntries.Remove(entry);
-                await context.SaveChangesAsync();
+                var minSortOrder = entriesToDelete.Min(e => e.SortOrder);
+                var deletedCount = entriesToDelete.Count;
 
-                // Reorder remaining entries after the deleted one
+                // Bulk delete the entries
                 await context.PlaylistEntries
-                    .Where(pe => pe.PlaylistId == playlistId && pe.SortOrder > deletedSortOrder)
+                    .Where(pe => pe.PlaylistId == playlistId && entryIds.Contains(pe.Id))
+                    .ExecuteDeleteAsync();
+
+                // Reorder remaining entries after the minimum deleted sort order
+                await context.PlaylistEntries
+                    .Where(pe => pe.PlaylistId == playlistId && pe.SortOrder > minSortOrder)
                     .ExecuteUpdateAsync(setters => setters.SetProperty(
                         pe => pe.SortOrder,
-                        pe => pe.SortOrder - 1));
+                        pe => pe.SortOrder - deletedCount));
 
                 await transaction.CommitAsync();
 
                 stopwatch.Stop();
-                logger.LogDebug("DeletePlaylistEntryAsync took {ElapsedMs}ms for entryId {EntryId} in playlistId {PlaylistId}",
-                    stopwatch.ElapsedMilliseconds, entryId, playlistId);
+                logger.LogDebug("DeletePlaylistEntriesAsync took {ElapsedMs}ms for {Count} entries in playlistId {PlaylistId}",
+                    stopwatch.ElapsedMilliseconds, deletedCount, playlistId);
 
-                return true;
+                return deletedCount;
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error deleting playlist entry {EntryId} from playlist {PlaylistId}",
-                    entryId, playlistId);
+                logger.LogError(ex, "Error deleting playlist entries from playlist {PlaylistId}",
+                    playlistId);
                 throw;
             }
         }
