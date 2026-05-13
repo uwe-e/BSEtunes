@@ -282,7 +282,7 @@ namespace BSEtunes.Infrastructure.Repositories
                         title => title.Id,
                         (t, title) => title.Guid)
                     .FirstOrDefault())
-                .Distinct()
+                //.Distinct()
                 .ToListAsync();
             albumIdsStopwatch.Stop();
             logger.LogDebug("Album IDs query took {ElapsedMs}ms", albumIdsStopwatch.ElapsedMilliseconds);
