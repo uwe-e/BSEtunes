@@ -49,5 +49,10 @@ namespace BSEtunes.Application.Services
         {
             return await repository.GetTrackIdsByPlaylistIdAsync(playlistId, randomize);
         }
+
+        public async Task<bool> ReorderPlaylistEntriesAsync(int playlistId, List<int> entryIds, string owner)
+        {
+            return await repository.ReorderPlaylistEntriesAsync(playlistId, entryIds, owner);
+        }
     }
 }

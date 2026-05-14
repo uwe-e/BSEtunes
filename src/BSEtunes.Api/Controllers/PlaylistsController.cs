@@ -404,6 +404,49 @@ namespace BSEtunes.Api.Controllers
             
             return Ok(dto);
         }
+        /// <summary>
+        /// Updates the order of playlist entries by providing a complete sorted list of entry IDs.
+        /// </summary>  
+        /// <remarks>Only authenticated users with the 'tunes-users' role can access this endpoint.
+        /// The user must be the owner of the playlist to reorder entries. All entry IDs in the request
+        /// will have their sort order updated based on their position in the provided list.</remarks>
+        /// <param name="playlistId">The unique identifier of the playlist.</param>
+        /// <param name="reorderEntriesDto">The data transfer object containing entry IDs in the desired order.</param>
+        /// <returns>Returns NoContent (204) if the reordering was successful. Returns
+        /// Unauthorized if the user claim is missing, NotFound if the playlist does not exist or does not belong to the user,
+        /// or BadRequest if the model validation fails.</returns>
+        [HttpPut("{playlistId:int}/entries/reorder")]
+        [Authorize(Roles = "tunes-users")]
+        public async Task<ActionResult> ReorderPlaylistEntriesAsync(
+            int playlistId,
+            [FromBody] ReorderPlaylistEntriesDto reorderEntriesDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var userEmail = User.GetUserEmail();
+
+            if (string.IsNullOrEmpty(userEmail))
+            {
+                return Unauthorized();
+            }
+
+            var playlist = await service.GetPlaylistByOwnerAndIdAsync(userEmail, playlistId);
+            if (playlist == null)
+            {
+                return NotFound();
+            }
+
+            var updated = await service.ReorderPlaylistEntriesAsync(playlistId, reorderEntriesDto.EntryIds, userEmail);
+            if (!updated)
+            {
+                return BadRequest("Failed to reorder entries. Ensure all entry IDs are valid.");
+            }
+
+            return NoContent();
+        }
     }
 
 }

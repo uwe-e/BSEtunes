@@ -412,7 +412,69 @@ namespace BSEtunes.Infrastructure.Repositories
             return trackIds;
         }
         
-        
+        /// <summary>
+        /// Reorders playlist entries based on the provided list of entry IDs in their new order.
+        /// </summary>
+        /// <param name="playlistId">The unique identifier of the playlist.</param>
+        /// <param name="entryIds">The list of entry IDs in the desired new order.</param>
+        /// <param name="owner">The owner of the playlist for authorization.</param>
+        /// <returns>True if reordering was successful, false if playlist not found or unauthorized.</returns>
+        public async Task<bool> ReorderPlaylistEntriesAsync(int playlistId, List<int> entryIds, string owner)
+        {
+            var stopwatch = Stopwatch.StartNew();
+
+            await using var transaction = await context.Database.BeginTransactionAsync();
+
+            try
+            {
+                // Verify playlist ownership
+                var playlistExists = await context.Playlists
+                    .AnyAsync(p => p.Id == playlistId && p.Owner == owner);
+
+                if (!playlistExists)
+                {
+                    await transaction.RollbackAsync();
+                    logger.LogDebug("ReorderPlaylistEntriesAsync: Playlist {PlaylistId} not found or not owned by {Owner}",
+                        playlistId, owner);
+                    return false;
+                }
+
+                // Fetch all entries that need reordering
+                var entries = await context.PlaylistEntries
+                    .Where(e => e.PlaylistId == playlistId && entryIds.Contains(e.Id))
+                    .ToListAsync();
+
+                if (entries.Count != entryIds.Count)
+                {
+                    await transaction.RollbackAsync();
+                    logger.LogDebug("ReorderPlaylistEntriesAsync: Entry count mismatch. Expected {Expected}, found {Found}",
+                        entryIds.Count, entries.Count);
+                    return false;
+                }
+
+                // Update sort order based on position in the provided list
+                for (int i = 0; i < entryIds.Count; i++)
+                {
+                    var entry = entries.First(e => e.Id == entryIds[i]);
+                    entry.SortOrder = i; // 0-based indexing
+                }
+
+                await context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                stopwatch.Stop();
+                logger.LogDebug("ReorderPlaylistEntriesAsync took {ElapsedMs}ms for playlistId {PlaylistId}, reordered {Count} entries",
+                    stopwatch.ElapsedMilliseconds, playlistId, entryIds.Count);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error reordering playlist entries for playlist {PlaylistId}", playlistId);
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
     }
 }
 

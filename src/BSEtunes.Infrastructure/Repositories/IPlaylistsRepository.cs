@@ -27,5 +27,6 @@ namespace BSEtunes.Infrastructure.Repositories
         Task<IReadOnlyList<PlaylistEntity>> GetPlaylistsByOwnerAsync(string owner);
 
         Task<List<int>> GetTrackIdsByPlaylistIdAsync(int playlistId, bool randomize = false);
+        Task<bool> ReorderPlaylistEntriesAsync(int playlistId, List<int> entryIds, string owner);
     }
 }
