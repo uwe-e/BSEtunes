@@ -60,7 +60,7 @@ namespace BSEtunes.Api.Controllers
         /// <returns>An image file containing the album cover in JPEG format. Returns a thumbnail or full-size image based on the
         /// value of asThumbnail.</returns>
         [HttpGet]
-        //[Authorize(Roles = "tunes-users")]
+        [Authorize(Roles = "tunes-users")]
         [Route("{albumId:Guid}/cover/{asThumbnail:bool=false}")]
         public async Task<ActionResult> GetAlbumCoverImage(Guid albumId, bool asThumbnail = false)
         {

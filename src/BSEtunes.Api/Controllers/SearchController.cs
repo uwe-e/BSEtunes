@@ -3,6 +3,7 @@ using BSEtunes.Application.Services;
 using BSEtunes.Contracts.DTOs.Albums;
 using BSEtunes.Contracts.DTOs.Common;
 using BSEtunes.Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BSEtunes.Api.Controllers
@@ -21,6 +22,7 @@ namespace BSEtunes.Api.Controllers
         }
 
         [HttpGet("albums")]
+        [Authorize(Roles = "tunes-users")]
         public async Task<ActionResult<PagedResult<AlbumDto>>> SearchAlbums(
             [FromQuery] string query,
             [FromQuery] int pageNumber = 1,
@@ -64,6 +66,7 @@ namespace BSEtunes.Api.Controllers
         }
 
         [HttpGet("tracks")]
+        [Authorize(Roles = "tunes-users")]
         public async Task<ActionResult<PagedResult<TrackDto>>> SearchTracks(
             [FromQuery] string query,
             [FromQuery] int pageNumber = 1,
