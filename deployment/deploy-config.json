@@ -1,0 +1,58 @@
+﻿{
+    "projectName":  "BSE.Identity.Blazor.Client",
+    "projectDescription":  "BSE.Identity Blazor Server Application with Fluent UI",
+    "repositoryUrl":  "https://github.com/uwe-e/BSE.Identity",
+    "environments":  {
+                         "development":  {
+                                             "projectPath":  "src\\BSE.Identity.Blazor.Client\\BSE.Identity.Blazor.Client.csproj",
+                                             "buildConfiguration":  "Debug",
+                                             "targetServer":  "DEV-SERVER",
+                                             "deploymentPath":  "\\\\DEV-SERVER\\c$\\inetpub\\wwwroot\\BSE.Identity.Dev",
+                                             "appPoolName":  "BSE.Identity.Dev",
+                                             "websiteName":  "BSE.Identity.Dev",
+                                             "deploymentUsername":  "",
+                                             "backupEnabled":  true,
+                                             "backupPath":  "\\\\DEV-SERVER\\c$\\Backups\\BSE.Identity.Dev"
+                                         },
+                         "staging":  {
+                                         "projectPath":  "src\\BSE.Identity.Blazor.Client\\BSE.Identity.Blazor.Client.csproj",
+                                         "buildConfiguration":  "Release",
+                                         "targetServer":  "STAGING-SERVER",
+                                         "deploymentPath":  "\\\\STAGING-SERVER\\c$\\inetpub\\wwwroot\\BSE.Identity.Staging",
+                                         "appPoolName":  "BSE.Identity.Staging",
+                                         "websiteName":  "BSE.Identity.Staging",
+                                         "deploymentUsername":  "DOMAIN\\stagingdeploy",
+                                         "backupEnabled":  true,
+                                         "backupPath":  "\\\\STAGING-SERVER\\c$\\Backups\\BSE.Identity.Staging"
+                                     },
+                         "production":  {
+                                            "projectPath":  "src\\BSEtunes.Api\\BSEtunes.Api.csproj",
+                                            "buildConfiguration":  "Release",
+                                            "targetServer":  "@Microsoft.KeyVault(SecretUri=https://bse-tunes-deploy-kv.vault.azure.net/secrets/DeployConfig-production-targetServer/)",
+                                            "deploymentPath":  "@Microsoft.KeyVault(SecretUri=https://bse-tunes-deploy-kv.vault.azure.net/secrets/DeployConfig-production-deploymentPath/)",
+                                            "appPoolName":  "@Microsoft.KeyVault(SecretUri=https://bse-tunes-deploy-kv.vault.azure.net/secrets/DeployConfig-production-appPoolName/)",
+                                            "websiteName":  "@Microsoft.KeyVault(SecretUri=https://bse-tunes-deploy-kv.vault.azure.net/secrets/DeployConfig-production-websiteName/)",
+                                            "deploymentUsername":  "@Microsoft.KeyVault(SecretUri=https://bse-tunes-deploy-kv.vault.azure.net/secrets/DeployConfig-production-deploymentUsername/)",
+                                            "deploymentPassword":  "@Microsoft.KeyVault(SecretUri=https://bse-tunes-deploy-kv.vault.azure.net/secrets/DeployConfig-production-deploymentPassword/)",
+                                            "backupEnabled":  true,
+                                            "backupPath":  "@Microsoft.KeyVault(SecretUri=https://bse-tunes-deploy-kv.vault.azure.net/secrets/DeployConfig-production-backupPath/)"
+                                        }
+                     },
+    "buildSettings":  {
+                          "cleanBeforeBuild":  true,
+                          "runTests":  false,
+                          "publishProfile":  "Default"
+                      },
+    "iisSettings":  {
+                        "stopTimeout":  30,
+                        "startTimeout":  30,
+                        "recycleAfterDeploy":  true
+                    },
+    "notifications":  {
+                          "enabled":  false,
+                          "emailRecipients":  [
+
+                                              ],
+                          "smtpServer":  ""
+                      }
+}

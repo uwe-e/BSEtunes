@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.14.36616.10
+# Visual Studio Version 18
+VisualStudioVersion = 18.7.11903.348
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BSEtunes.Api", "src\BSEtunes.Api\BSEtunes.Api.csproj", "{92478419-4BE8-411C-9395-0C8B6760E478}"
 EndProject
@@ -16,6 +16,13 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BSEtunes.Identity", "src\BSEtunes.Identity\BSEtunes.Identity.csproj", "{E49A4425-DB39-4B7F-9738-7BD12F78BE6D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BSEtunes.Contracts", "src\BSEtunes.Contracts\BSEtunes.Contracts.csproj", "{C6DF8338-4DE6-482F-B897-90D82F3301D2}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "deployment", "deployment", "{48F0CBC9-2A2A-443C-ADF6-F069512BB98C}"
+	ProjectSection(SolutionItems) = preProject
+		deployment\deploy-config.json = deployment\deploy-config.json
+		deployment\Deploy.ps1 = deployment\Deploy.ps1
+		deployment\README.md = deployment\README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

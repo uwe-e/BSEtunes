@@ -20,10 +20,11 @@ namespace BSEtunes.Identity.Extensions
 
             var connectionStringBuilder = new MySqlConnectionStringBuilder
             {
-                Server = builder.Configuration["mysqlidentity:server"],
-                Database = builder.Configuration["mysqlidentity:database"],
-                UserID = builder.Configuration["mysqlidentity:userid"],
-                Password = builder.Configuration["mysqlidentity:password"]
+                Server = builder.Configuration["identity:backend:server"],
+                Port = uint.Parse(builder.Configuration["identity:backend:port"] ?? "3306"),
+                Database = builder.Configuration["identity:backend:database"],
+                UserID = builder.Configuration["identity:backend:userid"],
+                Password = builder.Configuration["identity:backend:password"]
             };
 
             builder.Services.AddDbContext<IdentityDbContext>(options =>
