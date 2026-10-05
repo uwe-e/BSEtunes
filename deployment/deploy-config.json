@@ -25,18 +25,18 @@
                                          "backupEnabled":  true,
                                          "backupPath":  "\\\\STAGING-SERVER\\c$\\Backups\\BSE.Identity.Staging"
                                      },
-                         "production":  {
-                                            "projectPath":  "src\\BSEtunes.Api\\BSEtunes.Api.csproj",
-                                            "buildConfiguration":  "Release",
-                                            "targetServer":  "@Microsoft.KeyVault(SecretUri=https://bse-tunes-deploy-kv.vault.azure.net/secrets/DeployConfig-production-targetServer/)",
-                                            "deploymentPath":  "@Microsoft.KeyVault(SecretUri=https://bse-tunes-deploy-kv.vault.azure.net/secrets/DeployConfig-production-deploymentPath/)",
-                                            "appPoolName":  "@Microsoft.KeyVault(SecretUri=https://bse-tunes-deploy-kv.vault.azure.net/secrets/DeployConfig-production-appPoolName/)",
-                                            "websiteName":  "@Microsoft.KeyVault(SecretUri=https://bse-tunes-deploy-kv.vault.azure.net/secrets/DeployConfig-production-websiteName/)",
-                                            "deploymentUsername":  "@Microsoft.KeyVault(SecretUri=https://bse-tunes-deploy-kv.vault.azure.net/secrets/DeployConfig-production-deploymentUsername/)",
-                                            "deploymentPassword":  "@Microsoft.KeyVault(SecretUri=https://bse-tunes-deploy-kv.vault.azure.net/secrets/DeployConfig-production-deploymentPassword/)",
-                                            "backupEnabled":  true,
-                                            "backupPath":  "@Microsoft.KeyVault(SecretUri=https://bse-tunes-deploy-kv.vault.azure.net/secrets/DeployConfig-production-backupPath/)"
-                                        }
+      "production": {
+        "projectPath": "BSEtunes\\src\\BSEtunes.Api\\BSEtunes.Api.csproj",
+        "buildConfiguration": "Release",
+        "targetServer": "@Microsoft.KeyVault(SecretUri=https://kv-bse-tunes-api-deploy.vault.azure.net/secrets/DeployConfig-production-targetServer/)",
+        "deploymentPath": "@Microsoft.KeyVault(SecretUri=https://kv-bse-tunes-api-deploy.vault.azure.net/secrets/DeployConfig-production-deploymentPath/)",
+        "appPoolName": "@Microsoft.KeyVault(SecretUri=https://kv-bse-tunes-api-deploy.vault.azure.net/secrets/DeployConfig-production-appPoolName/)",
+        "websiteName": "@Microsoft.KeyVault(SecretUri=https://kv-bse-tunes-api-deploy.vault.azure.net/secrets/DeployConfig-production-websiteName/)",
+        "deploymentUsername": "@Microsoft.KeyVault(SecretUri=https://kv-bse-tunes-api-deploy.vault.azure.net/secrets/DeployConfig-production-deploymentUsername/)",
+        "deploymentPassword": "@Microsoft.KeyVault(SecretUri=https://kv-bse-tunes-api-deploy.vault.azure.net/secrets/DeployConfig-production-deploymentPassword/)",
+        "backupEnabled": true,
+        "backupPath": "@Microsoft.KeyVault(SecretUri=https://kv-bse-tunes-api-deploy.vault.azure.net/secrets/DeployConfig-production-backupPath/)"
+      }
                      },
     "buildSettings":  {
                           "cleanBeforeBuild":  true,

@@ -18,50 +18,6 @@ using System.Security.Cryptography.X509Certificates;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Log directory is anchored to the app's base directory so it resolves correctly
-// regardless of the IIS working directory (which is not the app folder).
-// Exposed as an environment variable so the File sink path in appsettings.json
-// can reference it as %BSE_LOG_DIR% without hardcoding an absolute path in config.
-//var logDir = Path.Combine(AppContext.BaseDirectory, "logs");
-//Environment.SetEnvironmentVariable("BSE_LOG_DIR", logDir);
-
-// Ensure the logs directory exists and is writable before Serilog tries to open files in it.
-// If this fails, write to the Windows Application Event Log — the one sink that never needs
-// file-system permissions — so the exact error is always visible.
-//try
-//{
-//    Directory.CreateDirectory(logDir);
-//    var probe = Path.Combine(logDir, ".write-test");
-//    File.WriteAllText(probe, string.Empty);
-//    File.Delete(probe);
-//}
-//catch (Exception ex)
-//{
-//    const string source = "BSEtunes.Api";
-//    const string logName = "Application";
-//    try
-//    {
-//        if (!System.Diagnostics.EventLog.SourceExists(source))
-//            System.Diagnostics.EventLog.CreateEventSource(source, logName);
-//        System.Diagnostics.EventLog.WriteEntry(source,
-//            $"Cannot write to log directory '{logDir}': {ex}",
-//            System.Diagnostics.EventLogEntryType.Error);
-//    }
-//    catch { /* Event Log also unavailable — nothing more we can do at this point */ }
-//}
-
-// Bootstrap logger — active until UseSerilog builds the real logger from configuration.
-// The File sink path is still set in code here because the bootstrap logger starts
-// before appsettings are loaded.
-//Log.Logger = new LoggerConfiguration()
-//    .MinimumLevel.Warning()
-//    .WriteTo.Console()
-//    .WriteTo.File(
-//        path: Path.Combine(logDir, "bootstrap-.log"),
-//        rollingInterval: RollingInterval.Day,
-//        retainedFileCountLimit: 7)
-//    .CreateBootstrapLogger();
-
 // Main logger is driven entirely by appsettings (levels, sinks, enrichers).
 // The File sink in appsettings uses %BSE_LOG_DIR% which is set above.
 builder.Host.UseSerilog((context, services, loggerConfig) =>
@@ -73,7 +29,7 @@ try
 {
     Log.Information("Starting BSEtunes API");
 
-    //if (builder.Environment.IsProduction())
+    if (builder.Environment.IsProduction())
     {
         var keyVaultName = builder.Configuration["KeyVault:Name"];
         var certThumbprint = builder.Configuration["KeyVault:AzureADCertThumbprint"];
@@ -134,13 +90,25 @@ try
         }
     }
 
+    var backendSection = builder.Configuration.GetSection("tunes:backend");
+    var server = backendSection["server"];
+    var portStr = backendSection["port"];
+    var database = backendSection["database"];
+    var userId = backendSection["userid"];
+    var password = backendSection["password"];
+
+    if (!uint.TryParse(portStr, out var port))
+    {
+        port = 3306;
+    }
+
     var connectionStringBuilder = new MySqlConnectionStringBuilder
     {
-        Server = builder.Configuration["tunes:backend:server"],
-        Port = uint.Parse(builder.Configuration["tunes:backend:port"] ?? "3306"),
-        Database = builder.Configuration["tunes:backend:database"],
-        UserID = builder.Configuration["tunes:backend:userid"],
-        Password = builder.Configuration["tunes:backend:password"]
+        Server = server,
+        Port = port,
+        Database = database,
+        UserID = userId,
+        Password = password
     };
 
     // Temporary design-time DbContext factory check that creates the DbContext and the models
@@ -186,11 +154,13 @@ try
     builder.Services.AddScoped<IGenreService, GenreService>();
 
     // Use DbContext pooling to reduce allocations and improve throughput under load
+    var serverVersion = ServerVersion.AutoDetect(connectionStringBuilder.ConnectionString);
+    var dbContextPoolSize = builder.Configuration.GetValue<int?>("DbContextPool:Size") ?? 128;
     builder.Services.AddDbContextPool<RecordsDbContext>(options =>
     {
         options.UseMySql(connectionStringBuilder.ConnectionString,
-            ServerVersion.AutoDetect(connectionStringBuilder.ConnectionString));
-    });
+            serverVersion);
+    }, dbContextPoolSize);
     builder.Services.AddAutoMapper(cfg =>
     {
         cfg.LicenseKey = builder.Configuration["AutoMapper:LicenseKey"];
@@ -224,10 +194,11 @@ try
         // Configure Swagger to show enums as strings
         options.UseInlineDefinitionsForEnums();
 
+        var albumSortNames = Enum.GetNames<AlbumSortOption>();
         options.MapType<AlbumSortOption>(() => new OpenApiSchema
         {
             Type = "string",
-            Enum = Enum.GetNames<AlbumSortOption>()
+            Enum = albumSortNames
                 .Select(name => (IOpenApiAny)new OpenApiString(name))
                 .ToList()
         });
