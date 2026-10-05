@@ -13,31 +13,61 @@ using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using MySqlConnector;
 using Serilog;
-using Serilog.Events;
 using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure Serilog
-Log.Logger = new LoggerConfiguration()
-    .MinimumLevel.Information()
-    .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-    .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", LogEventLevel.Information)
-    .MinimumLevel.Override("BSEtunes", LogEventLevel.Debug)
-    .Enrich.FromLogContext()
-    //.Enrich.WithThreadId()
-    //.Enrich.WithMachineName()
-    .WriteTo.Console(
-        outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}")
-    .WriteTo.File(
-        path: "logs/bsetunes-.log",
-        rollingInterval: RollingInterval.Day,
-        outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}] [{Level:u3}] {SourceContext} - {Message:lj}{NewLine}{Exception}",
-        retainedFileCountLimit: 30)
-    .CreateLogger();
+// Log directory is anchored to the app's base directory so it resolves correctly
+// regardless of the IIS working directory (which is not the app folder).
+// Exposed as an environment variable so the File sink path in appsettings.json
+// can reference it as %BSE_LOG_DIR% without hardcoding an absolute path in config.
+//var logDir = Path.Combine(AppContext.BaseDirectory, "logs");
+//Environment.SetEnvironmentVariable("BSE_LOG_DIR", logDir);
 
-builder.Host.UseSerilog();
+// Ensure the logs directory exists and is writable before Serilog tries to open files in it.
+// If this fails, write to the Windows Application Event Log — the one sink that never needs
+// file-system permissions — so the exact error is always visible.
+//try
+//{
+//    Directory.CreateDirectory(logDir);
+//    var probe = Path.Combine(logDir, ".write-test");
+//    File.WriteAllText(probe, string.Empty);
+//    File.Delete(probe);
+//}
+//catch (Exception ex)
+//{
+//    const string source = "BSEtunes.Api";
+//    const string logName = "Application";
+//    try
+//    {
+//        if (!System.Diagnostics.EventLog.SourceExists(source))
+//            System.Diagnostics.EventLog.CreateEventSource(source, logName);
+//        System.Diagnostics.EventLog.WriteEntry(source,
+//            $"Cannot write to log directory '{logDir}': {ex}",
+//            System.Diagnostics.EventLogEntryType.Error);
+//    }
+//    catch { /* Event Log also unavailable — nothing more we can do at this point */ }
+//}
+
+// Bootstrap logger — active until UseSerilog builds the real logger from configuration.
+// The File sink path is still set in code here because the bootstrap logger starts
+// before appsettings are loaded.
+//Log.Logger = new LoggerConfiguration()
+//    .MinimumLevel.Warning()
+//    .WriteTo.Console()
+//    .WriteTo.File(
+//        path: Path.Combine(logDir, "bootstrap-.log"),
+//        rollingInterval: RollingInterval.Day,
+//        retainedFileCountLimit: 7)
+//    .CreateBootstrapLogger();
+
+// Main logger is driven entirely by appsettings (levels, sinks, enrichers).
+// The File sink in appsettings uses %BSE_LOG_DIR% which is set above.
+builder.Host.UseSerilog((context, services, loggerConfig) =>
+    loggerConfig
+        .ReadFrom.Configuration(context.Configuration)
+        .ReadFrom.Services(services));
 
 try
 {
@@ -45,42 +75,65 @@ try
 
     //if (builder.Environment.IsProduction())
     {
-        using var x509Store = new X509Store(StoreLocation.LocalMachine);
-        x509Store.Open(OpenFlags.ReadOnly);
-
-        var thumbprint = builder.Configuration["KeyVault:AzureADCertThumbprint"];
-
-        var x509Certificate = x509Store.Certificates
-        .Find(
-            X509FindType.FindByThumbprint,
-            thumbprint,
-            validOnly: false)
-        .OfType<X509Certificate2>()
-        .Single();
-
         var keyVaultName = builder.Configuration["KeyVault:Name"];
-        var keyVaultUri = new Uri($"https://{keyVaultName}.vault.azure.net/");
+        var certThumbprint = builder.Configuration["KeyVault:AzureADCertThumbprint"];
+        var directoryId = builder.Configuration["KeyVault:AzureADDirectoryId"];
+        var applicationId = builder.Configuration["KeyVault:AzureADApplicationId"];
 
-        try
+        if (!string.IsNullOrWhiteSpace(keyVaultName)
+            && !string.IsNullOrWhiteSpace(certThumbprint)
+            && !string.IsNullOrWhiteSpace(directoryId)
+            && !string.IsNullOrWhiteSpace(applicationId))
         {
-builder.Configuration.AddAzureKeyVault(
-                keyVaultUri,
-                new ClientCertificateCredential(
-                    builder.Configuration["KeyVault:AzureADDirectoryId"],
-                    builder.Configuration["KeyVault:AzureADApplicationId"],
-                    x509Certificate));
-        }catch(Exception ex)
-        {
-            Log.Error(ex, "Error adding Azure Key Vault configuration");
-            //throw;
+            try
+            {
+                using var x509Store = new X509Store(StoreLocation.LocalMachine);
+                x509Store.Open(OpenFlags.ReadOnly);
+
+                var x509Certificate = x509Store.Certificates
+                    .Find(
+                        X509FindType.FindByThumbprint,
+                        certThumbprint,
+                        validOnly: false)
+                    .OfType<X509Certificate2>()
+                    .FirstOrDefault();
+
+                if (x509Certificate is null)
+                {
+                    Log.Warning("Azure AD certificate with thumbprint {Thumbprint} not found. Skipping Key Vault configuration.", certThumbprint);
+                }
+                else
+                {
+                    var keyVaultUri = new Uri($"https://{keyVaultName}.vault.azure.net/");
+
+                    try
+                    {
+                        builder.Configuration.AddAzureKeyVault(
+                            keyVaultUri,
+                            new ClientCertificateCredential(
+                                directoryId,
+                                applicationId,
+                                x509Certificate));
+                        Log.Information("Added Azure Key Vault configuration from {KeyVault}", keyVaultName);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, "Error adding Azure Key Vault configuration.");
+                        // Intentionally not rethrowing to allow startup to continue without Key Vault
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error accessing certificate store for Key Vault configuration.");
+            }
         }
-
-
+        else
+        {
+            Log.Debug("Key Vault configuration not present or incomplete. Skipping Key Vault setup.");
+        }
     }
 
-
-
-    // Add services to the container.
     var connectionStringBuilder = new MySqlConnectionStringBuilder
     {
         Server = builder.Configuration["tunes:backend:server"],
@@ -132,7 +185,8 @@ builder.Configuration.AddAzureKeyVault(
     builder.Services.AddScoped<IGenreRepository, GenreRepository>();
     builder.Services.AddScoped<IGenreService, GenreService>();
 
-    builder.Services.AddDbContext<RecordsDbContext>(options =>
+    // Use DbContext pooling to reduce allocations and improve throughput under load
+    builder.Services.AddDbContextPool<RecordsDbContext>(options =>
     {
         options.UseMySql(connectionStringBuilder.ConnectionString,
             ServerVersion.AutoDetect(connectionStringBuilder.ConnectionString));
@@ -151,11 +205,15 @@ builder.Configuration.AddAzureKeyVault(
     builder.Services.AddSwaggerGen(options =>
     {
         var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-        options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
+        var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFilename);
+        if (File.Exists(xmlPath))
+            options.IncludeXmlComments(xmlPath);
 
         // Include Application project XML comments
         var appXmlFile = "BSEtunes.Contracts.xml";
-        options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, appXmlFile));
+        var appXmlPath = Path.Combine(AppContext.BaseDirectory, appXmlFile);
+        if (File.Exists(appXmlPath))
+            options.IncludeXmlComments(appXmlPath);
 
         options.SwaggerDoc("v1", new OpenApiInfo
         {
@@ -205,7 +263,7 @@ builder.Configuration.AddAzureKeyVault(
     var app = builder.Build();
 
     // Configure the HTTP request pipeline.
-    if (app.Environment.IsDevelopment())
+    //if (app.Environment.IsDevelopment())
     {
         // Serve static files from wwwroot in development so the external JS is available.
         app.UseStaticFiles();
@@ -229,7 +287,7 @@ builder.Configuration.AddAzureKeyVault(
         };
     });
 
-    app.UseHttpsRedirection();
+    //app.UseHttpsRedirection();
 
     app.UseAuthentication();
     app.UseAuthorization();
@@ -237,7 +295,7 @@ builder.Configuration.AddAzureKeyVault(
     app.MapBSEIdentityApi();
     app.MapControllers();
 
-    app.Run();
+    await app.RunAsync();
 
 }
 catch (Exception ex)

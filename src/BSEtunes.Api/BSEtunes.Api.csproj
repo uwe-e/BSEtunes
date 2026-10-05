@@ -53,4 +53,22 @@
     </Content>
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- web.config is published as-is; stdoutLogEnabled must stay false in production
+         because the logs\ directory is created at runtime, not by the installer. -->
+    <Content Update="web.config">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <!-- XDT transform applied during dotnet publish -c Release -->
+    <Content Update="web.Production.config">
+      <CopyToPublishDirectory>Never</CopyToPublishDirectory>
+      <IsTransformFile>true</IsTransformFile>
+    </Content>
+  </ItemGroup>
+
+  <!-- Copy XML documentation from referenced projects so Swagger can read them -->
+  <Target Name="CopyReferencedProjectXmlDocs" AfterTargets="ResolveReferences">
+    <Copy SourceFiles="@(ReferencePath->'%(RootDir)%(Directory)%(Filename).xml')" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" Condition="Exists('%(RootDir)%(Directory)%(Filename).xml')" />
+  </Target>
+
 </Project>
