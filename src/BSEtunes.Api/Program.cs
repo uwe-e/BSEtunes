@@ -234,7 +234,7 @@ try
     var app = builder.Build();
 
     // Configure the HTTP request pipeline.
-    //if (app.Environment.IsDevelopment())
+    if (app.Environment.IsDevelopment())
     {
         // Serve static files from wwwroot in development so the external JS is available.
         app.UseStaticFiles();
@@ -258,7 +258,7 @@ try
         };
     });
 
-    //app.UseHttpsRedirection();
+    app.UseHttpsRedirection();
 
     app.UseAuthentication();
     app.UseAuthorization();
