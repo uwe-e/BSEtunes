@@ -119,7 +119,24 @@ dotnet user-secrets set "tunes:backend:server"   "localhost"                    
 dotnet user-secrets set "tunes:backend:database" "bsetunes"                         --project src/BSEtunes.Api
 dotnet user-secrets set "tunes:backend:userid"   "root"                             --project src/BSEtunes.Api
 dotnet user-secrets set "tunes:backend:password" "secret"                           --project src/BSEtunes.Api
+dotnet user-secrets set "tunes:backend:port"     "3307"                             --project src/BSEtunes.Api
+
 dotnet user-secrets set "Jwt:Key"                "your-secret-key-32-chars-minimum" --project src/BSEtunes.Api
+
+dotnet user-secrets set "AutoMapper:LicenseKey"  "your-license-key"                 --project src/BSEtunes.Api
+
+dotnet user-secrets set "identity:backend:userid" "root"                            --project src/BSEtunes.Api
+dotnet user-secrets set "identity:backend:server" "localhost"                       --project src/BSEtunes.Api
+dotnet user-secrets set "identity:backend:database" "Identity"                      --project src/BSEtunes.Api
+dotnet user-secrets set "identity:backend:port" "3307"                              --project src/BSEtunes.Api
+dotnet user-secrets set "identity:backend:password" "secret"                        --project src/BSEtunes.Api
+
+dotnet user-secrets set "tunes:fileshare:username" "root"                           --project src/BSEtunes.Api
+dotnet user-secrets set "tunes:fileshare:password" "secret"                         --project src/BSEtunes.Api
+dotnet user-secrets set "tunes:fileshare:domain" "the-ad-domain"                    --project src/BSEtunes.Api
+dotnet user-secrets set "tunes:fileshare:sharepath" "\\\\the-computer\\the-share"   --project src/BSEtunes.Api
+
+
 # Repeat the identity:backend:* keys as needed
 
 # 3. Run the API
