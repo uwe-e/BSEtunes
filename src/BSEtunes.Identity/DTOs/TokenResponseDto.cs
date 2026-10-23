@@ -4,8 +4,8 @@ namespace BSEtunes.Identity.DTOs
 {
     public class TokenResponseDto
     {
-        [JsonPropertyName("expires_in")]
-        public int Expires { get; set; }
+        [JsonPropertyName("expires_at")]
+        public DateTimeOffset Expires { get; set; }
         [JsonPropertyName("access_token")]
         public string AccessToken { get; set; } = null!;
         [JsonPropertyName("refresh_token")]

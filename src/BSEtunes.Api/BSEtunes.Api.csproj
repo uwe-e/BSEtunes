@@ -6,21 +6,36 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>c211a062-3e9e-4504-888a-d24b2c172e95</UserSecretsId>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
   </PropertyGroup>
 
+  <!-- Define a conditional compilation symbol for Windows platform
+    
+    this prevents that error
+    "Unable to resolve service for type 'BSEtunes.Infrastructure.Security.ImpersonatedFileAccessor"
+    
+      -->
+  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+  <DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
+</PropertyGroup>
+    
   <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="16.1.1" />
+    <PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.5.1" />
+    <PackageReference Include="Azure.Identity" Version="1.21.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.10">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.10" />
     <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="9.0.0" />
+    <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.6" />
     <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="9.0.6" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\BSEtunes.Application\BSEtunes.Application.csproj" />
+    <ProjectReference Include="..\BSEtunes.Contracts\BSEtunes.Contracts.csproj" />
     <ProjectReference Include="..\BSEtunes.Domain\BSEtunes.Domain.csproj" />
     <ProjectReference Include="..\BSEtunes.Identity\BSEtunes.Identity.csproj" />
     <ProjectReference Include="..\BSEtunes.Infrastructure\BSEtunes.Infrastructure.csproj" />
@@ -31,5 +46,29 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="wwwroot\swagger-ui\custom.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- web.config is published as-is; stdoutLogEnabled must stay false in production
+         because the logs\ directory is created at runtime, not by the installer. -->
+    <Content Update="web.config">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <!-- XDT transform applied during dotnet publish -c Release -->
+    <Content Update="web.Production.config">
+      <CopyToPublishDirectory>Never</CopyToPublishDirectory>
+      <IsTransformFile>true</IsTransformFile>
+    </Content>
+  </ItemGroup>
+
+  <!-- Copy XML documentation from referenced projects so Swagger can read them -->
+  <Target Name="CopyReferencedProjectXmlDocs" AfterTargets="ResolveReferences">
+    <Copy SourceFiles="@(ReferencePath->'%(RootDir)%(Directory)%(Filename).xml')" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" Condition="Exists('%(RootDir)%(Directory)%(Filename).xml')" />
+  </Target>
 
 </Project>

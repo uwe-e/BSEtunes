@@ -28,7 +28,7 @@
     }
 
     async function doLogin() {
-        var email = document.getElementById('swagger-username').value;
+        var userName = document.getElementById('swagger-username').value;
         var password = document.getElementById('swagger-password').value;
         var msg = document.getElementById('swagger-login-msg');
         msg.textContent = 'Logging in...';
@@ -37,7 +37,7 @@
             var res = await fetch('/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ Email: email, Password: password })
+                body: JSON.stringify({ UserName: userName, Password: password })
             });
 
             if (!res.ok) {

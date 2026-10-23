@@ -1,4 +1,4 @@
 ﻿namespace BSEtunes.Identity.DTOs
 {
-    public record LoginRequestDto(string Email, string Password);
+    public record LoginRequestDto(string UserName, string Password);
 }

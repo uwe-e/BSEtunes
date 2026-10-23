@@ -1,25 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BSEtunes.Infrastructure.Models;
 
-public partial class history
+[Table("history")]
+public partial class History
 {
-    public int PlayID { get; set; }
-
+    [Column("PlayID")]
+    public int Id { get; set; }
     public int AppID { get; set; }
-
-    public int TitelID { get; set; }
-
-    public int LiedID { get; set; }
-
-    public DateTime Zeit { get; set; }
-
-    public string Interpret { get; set; } = null!;
-
-    public string Titel { get; set; } = null!;
-
-    public string Lied { get; set; } = null!;
-
-    public string Benutzer { get; set; } = null!;
+    [Column("TitelID")]
+    public int TitleId { get; set; }
+    [Column("LiedID")]
+    public int TrackId { get; set; }
+    [Column("Zeit")]
+    public DateTime PlayedAt { get; set; }
+    [Column("Interpret")]
+    public string Artist { get; set; } = null!;
+    [Column("Titel")]
+    public string Title { get; set; } = null!;
+    [Column("Lied")]
+    public string TrackName { get; set; } = null!;
+    [Column("Benutzer")]
+    public string Owner { get; set; } = null!;
 }

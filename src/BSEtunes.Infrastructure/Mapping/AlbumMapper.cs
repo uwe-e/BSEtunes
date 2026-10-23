@@ -1,16 +1,35 @@
 ﻿using BSEtunes.Domain.Entities;
 using BSEtunes.Infrastructure.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BSEtunes.Infrastructure.Mapping
 {
     public static class AlbumMapper
     {
-        public static AlbumEntity ToDomain(Album model, IEnumerable<Track> dbTracks)
+        public static IEnumerable<AlbumEntity>? ToDomain(IEnumerable<Album> models)
+        {
+            return models.Select(model => new AlbumEntity
+            {
+                Id = model.Album_Id,
+                AlbumId = Guid.TryParse(model.Album_AlbumId, out var guid) ? guid : Guid.Empty,
+                Title = model.Album_Title,
+                ArtistId = model.Artist_Id,
+                Artist = new ArtistEntity
+                {
+                    Id = model.Artist_Id,
+                    Name = model.Artist_Name,
+                    SortName = model.Artist_SortName
+                },
+                Year = model.Album_Year,
+                GenreId = model.Genre_Id,
+                Genre = new GenreEntity
+                {
+                    Id = model.Genre_Id ?? 0,
+                    Name = model.Genre_Name ?? string.Empty
+                }
+            });
+        }
+
+        public static AlbumEntity? ToDomain(Album model, IEnumerable<Track> dbTracks)
         {
             if (model == null) return null;
             return new AlbumEntity
@@ -18,6 +37,7 @@ namespace BSEtunes.Infrastructure.Mapping
                 Id = model.Album_Id,
                 AlbumId = Guid.TryParse(model.Album_AlbumId, out var guid) ? guid : Guid.Empty,
                 Title = model.Album_Title,
+                ArtistId = model.Artist_Id,
                 Artist = new ArtistEntity
                 {
                     Id = model.Artist_Id,
@@ -34,6 +54,7 @@ namespace BSEtunes.Infrastructure.Mapping
                     Guid = Guid.TryParse(t.Guid, out var guid) ? guid : Guid.Empty,
                     Extension = string.IsNullOrEmpty(t.FilePath) ? string.Empty : System.IO.Path.GetExtension(t.FilePath)
                 }).ToList(),
+                GenreId = model.Genre_Id,
                 Genre = new GenreEntity
                 { 
                     Id = model.Genre_Id ?? 0,

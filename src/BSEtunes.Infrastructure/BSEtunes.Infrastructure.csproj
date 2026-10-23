@@ -24,6 +24,7 @@
   </ItemGroup>
   
   <ItemGroup>
+    <ProjectReference Include="..\BSEtunes.Contracts\BSEtunes.Contracts.csproj" />
     <ProjectReference Include="..\BSEtunes.Domain\BSEtunes.Domain.csproj" />
   </ItemGroup>
 

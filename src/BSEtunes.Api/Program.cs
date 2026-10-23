@@ -1,79 +1,220 @@
+using Azure.Identity;
 using BSEtunes.Application.Mapping;
 using BSEtunes.Application.Services;
+using BSEtunes.Contracts.Enums;
 using BSEtunes.Identity.Extensions;
+using BSEtunes.Infrastructure.Configuration;
 using BSEtunes.Infrastructure.Data;
 using BSEtunes.Infrastructure.Repositories;
+using BSEtunes.Infrastructure.Security;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using MySqlConnector;
+using Serilog;
 using System.Reflection;
+using System.Security.Cryptography.X509Certificates;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-var connectionStringBuilder = new MySqlConnectionStringBuilder
+// Main logger is driven entirely by appsettings (levels, sinks, enrichers).
+// The File sink in appsettings uses %BSE_LOG_DIR% which is set above.
+builder.Host.UseSerilog((context, services, loggerConfig) =>
+    loggerConfig
+        .ReadFrom.Configuration(context.Configuration)
+        .ReadFrom.Services(services));
+
+try
 {
-    Server = builder.Configuration["mysql:server"],
-    Database = builder.Configuration["mysql:database"],
-    UserID = builder.Configuration["mysql:userid"],
-    Password = builder.Configuration["mysql:password"]
-};
+    Log.Information("Starting BSEtunes API");
 
-// Temporary design-time DbContext factory check that creates the DbContext and the models
-//#if DEBUG
-//try
-//{
-//    // Temporary check — safe to guard with DEBUG so it doesn't run in production
-//    var factory = new BSEtunes.Infrastructure.Data.DesignTimeRecordsDbContextFactory();
-//    using var db = factory.CreateDbContext(Array.Empty<string>());
-//    Console.WriteLine($"[DesignTimeFactory] CanConnect: {db.Database.CanConnect()}");
-//}
-//catch (Exception ex)
-//{
-//    Console.WriteLine($"[DesignTimeFactory] ERROR: {ex}");
-//    // Uncomment to prompt Visual Studio to attach when CLI invokes this:
-//    // System.Diagnostics.Debugger.Launch();
-//}
-//#endif
-
-builder.Services.AddScoped<IAlbumService, AlbumService>();
-builder.Services.AddScoped<IAlbumRepository, AlbumRepository>();
-builder.Services.AddDbContext<RecordsDbContext>(options =>
-{
-    options.UseMySql(connectionStringBuilder.ConnectionString,
-        ServerVersion.AutoDetect(connectionStringBuilder.ConnectionString));
-});
-builder.Services.AddAutoMapper(cfg => { }, typeof(AlbumProfile));
-
-// Configure Identity services
-builder.ConfigureBSEIdentity();
-
-builder.Services.AddEndpointsApiExplorer();
-
-var apiName = builder.Configuration["Api:Name"] ?? builder.Environment.ApplicationName;
-builder.Services.AddSwaggerGen(options =>
-{
-    var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
-    
-    options.SwaggerDoc("v1", new OpenApiInfo
+    if (builder.Environment.IsProduction())
     {
-        Title = apiName,
-        Version = "v1"
+        var keyVaultName = builder.Configuration["KeyVault:Name"];
+        var certThumbprint = builder.Configuration["KeyVault:AzureADCertThumbprint"];
+        var directoryId = builder.Configuration["KeyVault:AzureADDirectoryId"];
+        var applicationId = builder.Configuration["KeyVault:AzureADApplicationId"];
+
+        if (!string.IsNullOrWhiteSpace(keyVaultName)
+            && !string.IsNullOrWhiteSpace(certThumbprint)
+            && !string.IsNullOrWhiteSpace(directoryId)
+            && !string.IsNullOrWhiteSpace(applicationId))
+        {
+            try
+            {
+                using var x509Store = new X509Store(StoreLocation.LocalMachine);
+                x509Store.Open(OpenFlags.ReadOnly);
+
+                var x509Certificate = x509Store.Certificates
+                    .Find(
+                        X509FindType.FindByThumbprint,
+                        certThumbprint,
+                        validOnly: false)
+                    .OfType<X509Certificate2>()
+                    .FirstOrDefault();
+
+                if (x509Certificate is null)
+                {
+                    Log.Warning("Azure AD certificate with thumbprint {Thumbprint} not found. Skipping Key Vault configuration.", certThumbprint);
+                }
+                else
+                {
+                    var keyVaultUri = new Uri($"https://{keyVaultName}.vault.azure.net/");
+
+                    try
+                    {
+                        builder.Configuration.AddAzureKeyVault(
+                            keyVaultUri,
+                            new ClientCertificateCredential(
+                                directoryId,
+                                applicationId,
+                                x509Certificate));
+                        Log.Information("Added Azure Key Vault configuration from {KeyVault}", keyVaultName);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, "Error adding Azure Key Vault configuration.");
+                        // Intentionally not rethrowing to allow startup to continue without Key Vault
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error accessing certificate store for Key Vault configuration.");
+            }
+        }
+        else
+        {
+            Log.Debug("Key Vault configuration not present or incomplete. Skipping Key Vault setup.");
+        }
+    }
+
+    var backendSection = builder.Configuration.GetSection("tunes:backend");
+    var server = backendSection["server"];
+    var portStr = backendSection["port"];
+    var database = backendSection["database"];
+    var userId = backendSection["userid"];
+    var password = backendSection["password"];
+
+    if (!uint.TryParse(portStr, out var port))
+    {
+        port = 3306;
+    }
+
+    var connectionStringBuilder = new MySqlConnectionStringBuilder
+    {
+        Server = server,
+        Port = port,
+        Database = database,
+        UserID = userId,
+        Password = password
+    };
+
+    // Temporary design-time DbContext factory check that creates the DbContext and the models
+    //#if DEBUG
+    //try
+    //{
+    //    // Temporary check — safe to guard with DEBUG so it doesn't run in production
+    //    var factory = new BSEtunes.Infrastructure.Data.DesignTimeRecordsDbContextFactory();
+    //    using var db = factory.CreateDbContext(Array.Empty<string>());
+    //    Console.WriteLine($"[DesignTimeFactory] CanConnect: {db.Database.CanConnect()}");
+    //}
+    //catch (Exception ex)
+    //{
+    //    Console.WriteLine($"[DesignTimeFactory] ERROR: {ex}");
+    //    // Uncomment to prompt Visual Studio to attach when CLI invokes this:
+    //    // System.Diagnostics.Debugger.Launch();
+    //}
+    //#endif
+    builder.Services.Configure<FileShareOptions>(
+    builder.Configuration.GetSection("tunes:fileshare"));
+
+#if WINDOWS
+    builder.Services.AddScoped<ImpersonatedFileAccessor>(sp =>
+    {
+        var options = sp.GetRequiredService<IOptions<FileShareOptions>>().Value;
+        return new ImpersonatedFileAccessor(options.Username, options.Password, options.Domain);
     });
+#endif
 
-    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-    {
-        Description = "Enter 'Bearer {token}'",
-        Name = "Authorization",
-        In = ParameterLocation.Header,
-        Type = SecuritySchemeType.Http,
-        Scheme = "bearer",
-        BearerFormat = "JWT"
-    });
+    builder.Services.AddScoped<ISystemService, SystemService>();
+    builder.Services.AddScoped<IDatabaseHealthRepository, DatabaseHealthRepository>();
+    builder.Services.AddScoped<IAlbumService, AlbumService>();
+    builder.Services.AddScoped<IAlbumRepository, AlbumRepository>();
+    builder.Services.AddScoped<ITrackService, TrackService>();
+    builder.Services.AddScoped<ITracksRepository, TracksRepository>();
+    builder.Services.AddScoped<IPlaylistsService, PlaylistsService>();
+    builder.Services.AddScoped<IPlaylistsRepository, PlaylistsRepository>();
+    builder.Services.AddScoped<ISearchService, SearchService>();
+    builder.Services.AddScoped<ISearchRepository, SearchRepository>();
+    builder.Services.AddScoped<IHistoryRepository, HistoryRepository>();
+    builder.Services.AddScoped<IHistoryService, HistoryService>();
+    builder.Services.AddScoped<IGenreRepository, GenreRepository>();
+    builder.Services.AddScoped<IGenreService, GenreService>();
 
-    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    // Use DbContext pooling to reduce allocations and improve throughput under load
+    var serverVersion = ServerVersion.AutoDetect(connectionStringBuilder.ConnectionString);
+    var dbContextPoolSize = builder.Configuration.GetValue<int?>("DbContextPool:Size") ?? 128;
+    builder.Services.AddDbContextPool<RecordsDbContext>(options =>
     {
+        options.UseMySql(connectionStringBuilder.ConnectionString,
+            serverVersion);
+    }, dbContextPoolSize);
+    builder.Services.AddAutoMapper(cfg =>
+    {
+        cfg.LicenseKey = builder.Configuration["AutoMapper:LicenseKey"];
+    }, typeof(AlbumProfile));
+
+    // Configure Identity services
+    builder.ConfigureBSEIdentity();
+
+    builder.Services.AddEndpointsApiExplorer();
+
+    var apiName = builder.Configuration["Api:Name"] ?? builder.Environment.ApplicationName;
+    builder.Services.AddSwaggerGen(options =>
+    {
+        var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+        var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFilename);
+        if (File.Exists(xmlPath))
+            options.IncludeXmlComments(xmlPath);
+
+        // Include Application project XML comments
+        var appXmlFile = "BSEtunes.Contracts.xml";
+        var appXmlPath = Path.Combine(AppContext.BaseDirectory, appXmlFile);
+        if (File.Exists(appXmlPath))
+            options.IncludeXmlComments(appXmlPath);
+
+        options.SwaggerDoc("v1", new OpenApiInfo
+        {
+            Title = apiName,
+            Version = "v1"
+        });
+
+        // Configure Swagger to show enums as strings
+        options.UseInlineDefinitionsForEnums();
+
+        var albumSortNames = Enum.GetNames<AlbumSortOption>();
+        options.MapType<AlbumSortOption>(() => new OpenApiSchema
+        {
+            Type = "string",
+            Enum = albumSortNames
+                .Select(name => (IOpenApiAny)new OpenApiString(name))
+                .ToList()
+        });
+
+        options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+        {
+            Description = "Enter 'Bearer {token}'",
+            Name = "Authorization",
+            In = ParameterLocation.Header,
+            Type = SecuritySchemeType.Http,
+            Scheme = "bearer",
+            BearerFormat = "JWT"
+        });
+
+        options.AddSecurityRequirement(new OpenApiSecurityRequirement
+        {
         {
             new OpenApiSecurityScheme
             {
@@ -84,35 +225,55 @@ builder.Services.AddSwaggerGen(options =>
             },
             Array.Empty<string>()
         }
+        });
+
     });
 
-});
+    builder.Services.AddControllers();
 
-builder.Services.AddControllers();
+    var app = builder.Build();
 
-var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    // Serve static files from wwwroot in development so the external JS is available.
-    app.UseStaticFiles();
-    
-    app.UseSwagger();
-    app.UseSwaggerUI(options =>
+    // Configure the HTTP request pipeline.
+    if (app.Environment.IsDevelopment())
     {
-        options.SwaggerEndpoint("/swagger/v1/swagger.json", apiName);
-        options.InjectJavascript("/swagger-ui/custom.js");
-        options.EnablePersistAuthorization();
+        // Serve static files from wwwroot in development so the external JS is available.
+        app.UseStaticFiles();
+
+        app.UseSwagger();
+        app.UseSwaggerUI(options =>
+        {
+            options.SwaggerEndpoint("/swagger/v1/swagger.json", apiName);
+            options.InjectJavascript("/swagger-ui/custom.js");
+            options.EnablePersistAuthorization();
+        });
+    }
+
+    app.UseSerilogRequestLogging(options =>
+    {
+        options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
+        options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
+        {
+            diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value);
+            diagnosticContext.Set("UserAgent", httpContext.Request.Headers.UserAgent);
+        };
     });
+
+    app.UseHttpsRedirection();
+
+    app.UseAuthentication();
+    app.UseAuthorization();
+    // Map Identity API endpoints
+    app.MapBSEIdentityApi();
+    app.MapControllers();
+
+    await app.RunAsync();
+
 }
-
-app.UseHttpsRedirection();
-
-app.UseAuthentication();
-app.UseAuthorization();
-// Map Identity API endpoints
-app.MapBSEIdentityApi();
-app.MapControllers();
-
-app.Run();
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Application terminated unexpectedly");
+}
+finally
+{
+    Log.CloseAndFlush();
+}

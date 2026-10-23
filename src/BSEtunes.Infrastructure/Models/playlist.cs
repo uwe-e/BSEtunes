@@ -1,17 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BSEtunes.Infrastructure.Models;
 
-public partial class playlist
+[Table("playlist")]
+public partial class Playlist
 {
-    public int ListId { get; set; }
-
-    public string ListName { get; set; } = null!;
-
-    public string User { get; set; } = null!;
-
-    public string guid { get; set; } = null!;
-
+    [Column("ListId")]
+    public int Id { get; set; }
+    [Column("ListName")]
+    public string Name { get; set; } = null!;
+    [Column("User")]
+    public string Owner { get; set; } = null!;
+    [Column("Guid")]
+    public string Guid { get; set; } = null!;
     public DateTime Timestamp { get; set; }
 }
