@@ -10,6 +10,11 @@ namespace BSEtunes.Application.Services
            return searchRepository.GetAlbumSearchAsync(searchPhrase, pageSize, pageIndex);
         }
 
+        public Task<IList<string>?> GetSuggestionsAsync(string query, int limit)
+        {
+            return searchRepository.GetSuggestionsAsync(query, limit);
+        }
+
         public Task<PagedResult<TrackEntity>> GetTrackSearchAsync(string searchPhrase, int pageSize, int pageIndex)
         {
             return searchRepository.GetTrackSearchAsync(searchPhrase, pageSize, pageIndex);
