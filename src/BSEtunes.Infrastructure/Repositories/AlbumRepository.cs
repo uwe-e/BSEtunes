@@ -122,8 +122,8 @@ namespace BSEtunes.Infrastructure.Repositories
             {
                 AlbumSortOption.Title => query.OrderBy(a => a.Album_Title),
                 AlbumSortOption.TitleDesc => query.OrderByDescending(a => a.Album_Title),
-                AlbumSortOption.Artist => query.OrderBy(a => a.Artist_Name),
-                AlbumSortOption.ArtistDesc => query.OrderByDescending(a => a.Artist_Name),
+                AlbumSortOption.Artist => query.OrderBy(a => a.Artist_SortName),
+                AlbumSortOption.ArtistDesc => query.OrderByDescending(a => a.Artist_SortName),
                 AlbumSortOption.Year => query.OrderBy(a => a.Album_Year),
                 AlbumSortOption.YearDesc => query.OrderByDescending(a => a.Album_Year),
                 AlbumSortOption.Newest => query.OrderBy(a => a.Album_Id),

@@ -108,5 +108,25 @@ namespace BSEtunes.Api.Controllers
 
             return Ok(dto);
         }
+        /// <summary>
+        /// Retrieves search suggestions based on the provided query string.
+        /// </summary>
+        /// <param name="query">The search query string.</param>
+        /// <param name="limit">The maximum number of suggestions to return.</param>
+        /// <returns>A list of suggested search terms.</returns>
+        [HttpGet("suggestions")]
+        [Authorize(Roles = "tunes-users")]
+        public async Task<ActionResult> GetSuggestions(
+            [FromQuery] string query,
+            [FromQuery] int limit = 15)
+        { 
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                return BadRequest("Suggestions query cannot be empty");
+            }
+
+            var suggestions = await _searchService.GetSuggestionsAsync(query, limit);
+            return Ok(suggestions);
+        }
     }
 }

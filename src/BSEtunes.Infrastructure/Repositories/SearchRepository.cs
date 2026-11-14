@@ -56,7 +56,39 @@ namespace BSEtunes.Infrastructure.Repositories
                 PageSize = pageSize
             };
         }
+        
+        public async Task<IList<string>?> GetSuggestionsAsync(string query, int limit)
+        {
+            var suggestions = new List<string>();
 
+            var connection = _context.Database.GetDbConnection();
+            await connection.OpenAsync();
+
+            try
+            {
+                using var command = connection.CreateCommand();
+                command.CommandText = "GetSearchSuggestions";
+                command.CommandType = CommandType.StoredProcedure;
+
+                command.Parameters.Add(new MySqlParameter("@searchPhrase", query ?? string.Empty));
+                command.Parameters.Add(new MySqlParameter("@maxResults", limit));
+
+                using var reader = await command.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    if (!reader.IsDBNull(0))
+                    {
+                        suggestions.Add(reader.GetString(0));
+                    }
+                }
+            }
+            finally
+            {
+                await connection.CloseAsync();
+            }
+            return suggestions;
+        }
+        
         public async Task<PagedResult<TrackEntity>> GetTrackSearchAsync(
             string searchPhrase, int pageSize, int pageIndex)
         {
@@ -174,5 +206,7 @@ namespace BSEtunes.Infrastructure.Repositories
                 Genre_Name = null
             };
         }
+
+        
     }
 }
