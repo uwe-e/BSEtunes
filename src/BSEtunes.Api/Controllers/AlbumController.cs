@@ -117,7 +117,7 @@ namespace BSEtunes.Api.Controllers
         /// Example request:
         /// GET /api/albums/paged?genre=Rock&amp;artistId=121&amp;artistName=Beatles&amp;yearFrom=1960&amp;yearTo=1970&amp;sortBy=Year&amp;pageNumber=1&amp;pageSize=20
         /// </remarks>
-        /// <param name="genre">Filter by genre (partial match, case-insensitive).</param>
+        /// <param name="genre">Filter by genre (exact match).</param>
         /// <param name="artistId">Filter by artist ID (exact match).</param>
         /// <param name="artistName">Filter by artist name (partial match, case-insensitive).</param>
         /// <param name="yearFrom">Filter by minimum album year (inclusive).</param>

@@ -90,7 +90,7 @@ namespace BSEtunes.Infrastructure.Repositories
             {
                 if (!string.IsNullOrWhiteSpace(filterOptions.Genre))
                 {
-                    query = query.Where(a => a.Genre_Name != null && a.Genre_Name.Contains(filterOptions.Genre));
+                    query = query.Where(a => a.Genre_Name != null && a.Genre_Name.Equals(filterOptions.Genre));
                 }
                 
                 if (filterOptions.ArtistId.HasValue)
